@@ -9,6 +9,8 @@
 .game-tabs-wrapper::-webkit-scrollbar { display: none; }
 
 .game-tabs {
+  max-width: var(--max-width);
+  margin: 0 auto;
   padding: 0 var(--space-md);
   display: flex;
   align-items: center;

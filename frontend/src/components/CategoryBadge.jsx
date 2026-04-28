@@ -18,6 +18,8 @@ export default function CategoryBadge({ name }) {
       borderRadius: '20px',
       fontSize: '0.75rem',
       fontWeight: 600,
+      whiteSpace: 'nowrap',
+      flexShrink: 0,
       background: color + '22',
       color,
       border: `1px solid ${color}44`,
