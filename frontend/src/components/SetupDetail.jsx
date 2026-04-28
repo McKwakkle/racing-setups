@@ -19,6 +19,11 @@ export default function SetupDetail() {
   const [deletePinError, setDeletePinError] = useState('')
   const [deleting, setDeleting] = useState(false)
 
+  const [showDupModal, setShowDupModal] = useState(false)
+  const [dupPin, setDupPin] = useState('')
+  const [dupPinError, setDupPinError] = useState('')
+  const [duplicating, setDuplicating] = useState(false)
+
   useEffect(() => {
     async function load() {
       setLoading(true)
@@ -107,6 +112,25 @@ export default function SetupDetail() {
     navigate('/')
   }
 
+  async function handleDuplicate(e) {
+    e.preventDefault()
+    setDupPinError('')
+    setDuplicating(true)
+
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+      body: JSON.stringify({ pin: dupPin, action: 'duplicate_setup', setup_id: id }),
+    })
+
+    setDuplicating(false)
+    if (res.status === 401) { setDupPinError('Incorrect PIN'); return }
+    if (!res.ok) { setDupPinError('Something went wrong'); return }
+
+    const { id: newId } = await res.json()
+    navigate(`/edit/${newId}`)
+  }
+
   if (loading) {
     return (
       <div className="setup-detail empty-state">
@@ -169,6 +193,9 @@ export default function SetupDetail() {
               ? <span className="copy-success"><i className="fa-solid fa-check" /> Copied!</span>
               : <><i className="fa-solid fa-link" /> Copy Link</>}
           </button>
+          <button className="btn btn-secondary" onClick={() => { setDupPin(''); setDupPinError(''); setShowDupModal(true) }}>
+            <i className="fa-solid fa-copy" /> Duplicate
+          </button>
           <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
             <i className="fa-solid fa-pen" /> Edit
           </button>
@@ -199,6 +226,37 @@ export default function SetupDetail() {
           </table>
         </div>
       ))}
+
+      {showDupModal && (
+        <div className="pin-modal-overlay" onClick={() => setShowDupModal(false)}>
+          <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handleDuplicate}>
+            <h3><i className="fa-solid fa-copy" /> Duplicate Setup</h3>
+            <p>
+              Creates a copy of <strong>{setup.title}</strong> with the same sections and setting names,
+              but all values left blank so you can fill them in for a different track.
+            </p>
+            <input
+              className="pin-input"
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="······"
+              value={dupPin}
+              onChange={e => setDupPin(e.target.value.replace(/\D/g, ''))}
+              autoFocus
+            />
+            {dupPinError && <p className="pin-error">{dupPinError}</p>}
+            <div className="pin-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowDupModal(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={duplicating || dupPin.length < 4}>
+                {duplicating ? 'Duplicating…' : 'Duplicate & Edit'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {showDeleteModal && (
         <div className="pin-modal-overlay" onClick={() => setShowDeleteModal(false)}>

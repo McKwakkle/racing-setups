@@ -131,6 +131,66 @@ serve(async (req) => {
       })
     }
 
+    // Duplicate a setup (same structure, blank values, no track)
+    if (action === 'duplicate_setup') {
+      const { setup_id } = body
+
+      const { data: original, error: fetchError } = await supabase
+        .from('setups').select('*').eq('id', setup_id).single()
+      if (fetchError) throw fetchError
+
+      const { data: secs, error: secsError } = await supabase
+        .from('setup_sections')
+        .select('*, setup_fields(*)')
+        .eq('setup_id', setup_id)
+        .order('sort_order')
+      if (secsError) throw secsError
+
+      const { data: newSetup, error: setupError } = await supabase
+        .from('setups')
+        .insert({
+          game_id:      original.game_id,
+          car_name:     original.car_name,
+          title:        original.title + ' (Copy)',
+          category_id:  original.category_id,
+          control_type: original.control_type,
+          author_name:  original.author_name,
+          notes:        original.notes,
+          track_name:   null,
+        })
+        .select('id')
+        .single()
+      if (setupError) throw setupError
+
+      for (let sIdx = 0; sIdx < (secs || []).length; sIdx++) {
+        const sec = secs[sIdx]
+        const { data: newSection, error: sectionError } = await supabase
+          .from('setup_sections')
+          .insert({ setup_id: newSetup.id, name: sec.name, sort_order: sIdx })
+          .select('id')
+          .single()
+        if (sectionError) throw sectionError
+
+        const fields = (sec.setup_fields || [])
+          .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
+          .map((f: { field_name: string }, fIdx: number) => ({
+            section_id:  newSection.id,
+            field_name:  f.field_name,
+            field_value: '',
+            sort_order:  fIdx,
+          }))
+        if (fields.length > 0) {
+          const { error: fieldsError } = await supabase.from('setup_fields').insert(fields)
+          if (fieldsError) throw fieldsError
+        }
+      }
+
+      return new Response(JSON.stringify({ id: newSetup.id }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // Submit a setup (default action)
     const { setup, sections } = body
 
