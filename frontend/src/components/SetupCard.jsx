@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom'
 import CategoryBadge from './CategoryBadge'
 import '../styles/SetupCard.css'
+import '../styles/RatingButtons.css'
 
 export default function SetupCard({ setup }) {
   const date = new Date(setup.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  const ratings = setup.ratings || []
+  const ups   = ratings.filter(r => r.value === 1).length
+  const downs = ratings.filter(r => r.value === -1).length
 
   return (
     <Link to={`/setup/${setup.id}`} className="setup-card">
@@ -32,6 +36,16 @@ export default function SetupCard({ setup }) {
 
       <div className="setup-card-footer">
         <span>{setup.author_name ? `By ${setup.author_name}` : 'Anonymous'}</span>
+        <div className="card-rating">
+          {(ups > 0 || downs > 0) ? (
+            <>
+              <span className="card-rating-up"><i className="fa-solid fa-thumbs-up" /> {ups}</span>
+              <span className="card-rating-down"><i className="fa-solid fa-thumbs-down" /> {downs}</span>
+            </>
+          ) : (
+            <span style={{ color: 'var(--color-border)' }}>No ratings</span>
+          )}
+        </div>
         <span>{date}</span>
       </div>
     </Link>

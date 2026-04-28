@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import CategoryBadge from './CategoryBadge'
+import RatingButtons from './RatingButtons'
 import '../styles/SetupDetail.css'
 
 export default function SetupDetail() {
@@ -210,6 +211,8 @@ export default function SetupDetail() {
           <i className="fa-solid fa-note-sticky" /> {setup.notes}
         </div>
       )}
+
+      <RatingButtons setupId={id} />
 
       {sections.map(sec => (
         <div key={sec.id} className="setup-section">

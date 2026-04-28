@@ -19,7 +19,7 @@ export default function SetupGrid() {
       setLoading(true)
       let query = supabase
         .from('setups')
-        .select('*, games(name, slug), categories(name)')
+        .select('*, games(name, slug), categories(name), ratings(value)')
         .order('created_at', { ascending: false })
 
       if (gameSlug) query = query.eq('games.slug', gameSlug)

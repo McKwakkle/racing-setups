@@ -1,0 +1,81 @@
+@import './variables.css';
+
+.rating-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.rating-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.rating-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.rating-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-raised);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: all var(--transition);
+}
+
+.rating-btn:not(:disabled):hover {
+  border-color: currentColor;
+}
+
+.rating-btn-up:not(:disabled):hover  { color: var(--color-success); }
+.rating-btn-down:not(:disabled):hover { color: var(--color-error); }
+
+.rating-btn-up.active {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.rating-btn-down.active {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.rating-btn:disabled { cursor: default; }
+
+.rating-thanks {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.rating-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Card mini rating */
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.78rem;
+}
+
+.card-rating-up   { color: var(--color-success); }
+.card-rating-down { color: var(--color-error); }
