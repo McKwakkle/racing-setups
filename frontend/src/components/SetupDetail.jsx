@@ -14,6 +14,11 @@ export default function SetupDetail() {
   const [copied, setCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePin, setDeletePin] = useState('')
+  const [deletePinError, setDeletePinError] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
   useEffect(() => {
     async function load() {
       setLoading(true)
@@ -84,6 +89,24 @@ export default function SetupDetail() {
     setTimeout(() => setLinkCopied(false), 2000)
   }
 
+  async function handleDelete(e) {
+    e.preventDefault()
+    setDeletePinError('')
+    setDeleting(true)
+
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+      body: JSON.stringify({ pin: deletePin, action: 'delete_setup', setup_id: id }),
+    })
+
+    setDeleting(false)
+    if (res.status === 401) { setDeletePinError('Incorrect PIN'); return }
+    if (!res.ok) { setDeletePinError('Something went wrong'); return }
+
+    navigate('/')
+  }
+
   if (loading) {
     return (
       <div className="setup-detail empty-state">
@@ -146,6 +169,12 @@ export default function SetupDetail() {
               ? <span className="copy-success"><i className="fa-solid fa-check" /> Copied!</span>
               : <><i className="fa-solid fa-link" /> Copy Link</>}
           </button>
+          <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
+            <i className="fa-solid fa-pen" /> Edit
+          </button>
+          <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
+            <i className="fa-solid fa-trash" /> Delete
+          </button>
         </div>
       </div>
 
@@ -170,6 +199,35 @@ export default function SetupDetail() {
           </table>
         </div>
       ))}
+
+      {showDeleteModal && (
+        <div className="pin-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handleDelete}>
+            <h3><i className="fa-solid fa-triangle-exclamation" /> Delete Setup</h3>
+            <p>This will permanently delete <strong>{setup.title}</strong>. This cannot be undone.</p>
+            <input
+              className="pin-input"
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="······"
+              value={deletePin}
+              onChange={e => setDeletePin(e.target.value.replace(/\D/g, ''))}
+              autoFocus
+            />
+            {deletePinError && <p className="pin-error">{deletePinError}</p>}
+            <div className="pin-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={deleting || deletePin.length < 4}
+                style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
+                {deleting ? 'Deleting…' : 'Delete Setup'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

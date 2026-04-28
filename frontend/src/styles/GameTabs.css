@@ -9,8 +9,6 @@
 .game-tabs-wrapper::-webkit-scrollbar { display: none; }
 
 .game-tabs {
-  max-width: var(--max-width);
-  margin: 0 auto;
   padding: 0 var(--space-md);
   display: flex;
   align-items: center;
@@ -23,12 +21,16 @@
   font-weight: 500;
   color: var(--color-text-muted);
   white-space: nowrap;
+  flex-shrink: 0;
   border-bottom: 2px solid transparent;
   transition: color var(--transition), border-color var(--transition);
   background: none;
   border-top: none;
   border-left: none;
   border-right: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 .game-tab:hover { color: var(--color-text); }
 .game-tab.active {
@@ -82,4 +84,36 @@
 .add-game-error {
   font-size: 0.85rem;
   color: var(--color-error);
+}
+
+.game-tab-delete-icon {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  transition: color var(--transition), opacity var(--transition);
+  line-height: 1;
+  padding: 2px 3px;
+  border-radius: 3px;
+}
+.game-tab-delete-icon:hover {
+  color: var(--color-error);
+  opacity: 1;
+}
+
+.delete-game-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.delete-game-modal h3 { font-size: 1.1rem; font-weight: 600; }
+.delete-game-modal p  { font-size: 0.9rem; color: var(--color-text-muted); }
+.delete-game-modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
 }

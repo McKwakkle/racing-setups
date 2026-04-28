@@ -12,6 +12,12 @@ export default function GameTabs() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [gameToDelete, setGameToDelete] = useState(null)
+  const [deletePin, setDeletePin] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
   const activeGame = searchParams.get('game') || 'all'
 
   useEffect(() => {
@@ -55,6 +61,36 @@ export default function GameTabs() {
     setPin('')
   }
 
+  function openDeleteGame(e, game) {
+    e.stopPropagation()
+    setGameToDelete(game)
+    setDeletePin('')
+    setDeleteError('')
+    setShowDeleteModal(true)
+  }
+
+  async function handleDeleteGame(e) {
+    e.preventDefault()
+    setDeleteError('')
+    setDeleting(true)
+
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+      body: JSON.stringify({ pin: deletePin, action: 'delete_game', game_id: gameToDelete.id }),
+    })
+
+    setDeleting(false)
+    if (res.status === 401) { setDeleteError('Incorrect PIN'); return }
+    if (!res.ok) { setDeleteError('Something went wrong'); return }
+
+    const { data } = await supabase.from('games').select('*').order('name')
+    if (data) setGames(data)
+    setShowDeleteModal(false)
+    setGameToDelete(null)
+    selectGame('all')
+  }
+
   return (
     <>
       <div className="game-tabs-wrapper">
@@ -69,6 +105,15 @@ export default function GameTabs() {
               onClick={() => selectGame(g.slug)}
             >
               {g.name}
+              {activeGame === g.slug && (
+                <span
+                  className="game-tab-delete-icon"
+                  onClick={e => openDeleteGame(e, g)}
+                  title={`Delete ${g.name}`}
+                >
+                  <i className="fa-solid fa-trash" />
+                </span>
+              )}
             </button>
           ))}
           <button className="btn btn-ghost game-tab-add" onClick={() => setShowAddModal(true)}>
@@ -100,6 +145,34 @@ export default function GameTabs() {
               <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={submitting}>
                 {submitting ? 'Adding…' : 'Add Game'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showDeleteModal && gameToDelete && (
+        <div className="add-game-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <form className="delete-game-modal" onClick={e => e.stopPropagation()} onSubmit={handleDeleteGame}>
+            <h3><i className="fa-solid fa-triangle-exclamation" /> Delete Game</h3>
+            <p>
+              This will permanently delete <strong>{gameToDelete.name}</strong> and all its setups.
+              This cannot be undone.
+            </p>
+            <input
+              type="password"
+              placeholder="Enter PIN to confirm"
+              maxLength={6}
+              value={deletePin}
+              onChange={e => setDeletePin(e.target.value)}
+              autoFocus
+            />
+            {deleteError && <p className="add-game-error">{deleteError}</p>}
+            <div className="delete-game-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button type="submit" className="btn btn-primary" disabled={deleting || deletePin.length < 4}
+                style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
+                {deleting ? 'Deleting…' : 'Delete Game'}
               </button>
             </div>
           </form>

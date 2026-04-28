@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './SetupForm.css';
 
 .setup-detail { padding: var(--space-lg) 0 var(--space-xl); }
 
@@ -126,8 +127,11 @@
   gap: 4px;
 }
 
+.setup-delete-btn { color: var(--color-error); border-color: var(--color-error); }
+.setup-delete-btn:hover { background: rgba(239,68,68,0.1); }
+
 @media (max-width: 768px) {
   .setup-detail-header { flex-direction: column; }
-  .setup-detail-actions { width: 100%; }
+  .setup-detail-actions { width: 100%; flex-wrap: wrap; }
   .setup-detail-actions .btn { flex: 1; justify-content: center; }
 }
