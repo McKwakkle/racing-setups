@@ -1,0 +1,29 @@
+@import './variables.css';
+
+.search-bars {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0 var(--space-md);
+}
+
+.search-bar-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.search-bar-wrap i {
+  position: absolute;
+  left: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-bar-wrap input {
+  padding-left: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .search-bars { flex-direction: column; }
+}

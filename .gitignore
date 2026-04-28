@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Supabase local dev
+.supabase/
+supabase/.temp/
+
+# Claude
+CLAUDE.md
+
+# OS
+.DS_Store
+Thumbs.db

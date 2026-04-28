@@ -1,0 +1,31 @@
+@import './variables.css';
+
+.navbar {
+  background: var(--color-bg-raised);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.navbar-logo i { color: var(--color-primary); }
+.navbar-logo:hover { color: var(--color-primary-light); }
+
+.navbar-actions { display: flex; gap: var(--space-sm); }
