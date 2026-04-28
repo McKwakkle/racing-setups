@@ -252,7 +252,7 @@ export default function SetupForm() {
         <div className="pin-modal-overlay" onClick={() => { setShowPin(false); setPin(''); setPinError('') }}>
           <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handlePinSubmit}>
             <h3><i className="fa-solid fa-lock" /> Enter PIN</h3>
-            <p>Enter the 6-digit group PIN to submit your setup.</p>
+            <p>Enter the group PIN to submit your setup.</p>
             <input
               className="pin-input"
               type="password"
