@@ -25,6 +25,9 @@ export default function SetupCard({ setup }) {
           <i className={setup.control_type === 'wheel' ? 'fa-solid fa-steering-wheel' : 'fa-solid fa-gamepad'} />
           {setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}
         </span>
+        {setup.track_name && (
+          <span><i className="fa-solid fa-map-location-dot" /> {setup.track_name}</span>
+        )}
       </div>
 
       <div className="setup-card-footer">

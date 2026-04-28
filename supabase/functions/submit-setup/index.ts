@@ -72,6 +72,7 @@ serve(async (req) => {
         control_type: setup.control_type,
         author_name:  setup.author_name ?? null,
         notes:        setup.notes ?? null,
+        track_name:   setup.track_name ?? null,
       })
       .select('id')
       .single()

@@ -12,7 +12,7 @@ export default function SetupForm() {
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState({
     game_id: '', car_name: '', title: '', category_id: '',
-    newCategory: '', control_type: 'wheel', author_name: '', notes: '',
+    newCategory: '', control_type: 'wheel', author_name: '', notes: '', track_name: '',
   })
   const [sections, setSections] = useState([emptySection()])
   const [showPin, setShowPin] = useState(false)
@@ -69,6 +69,7 @@ export default function SetupForm() {
         control_type: form.control_type,
         author_name:  form.author_name.trim() || null,
         notes:        form.notes.trim() || null,
+        track_name:   form.track_name.trim() || null,
         newCategory:  form.newCategory.trim() || null,
       },
       sections: sections
@@ -165,19 +166,26 @@ export default function SetupForm() {
 
           <div className="form-row">
             <div className="form-group">
+              <label>Track (optional)</label>
+              <input
+                type="text" placeholder="e.g. Nürburgring GP"
+                value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
+              />
+            </div>
+            <div className="form-group">
               <label>Your Gamertag (optional)</label>
               <input
                 type="text" placeholder="e.g. SpeedKing99"
                 value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
               />
             </div>
-            <div className="form-group">
-              <label>Notes (optional)</label>
-              <input
-                type="text" placeholder="e.g. Best on tarmac, tested in wet"
-                value={form.notes} onChange={e => setFormField('notes', e.target.value)}
-              />
-            </div>
+          </div>
+          <div className="form-group">
+            <label>Notes (optional)</label>
+            <input
+              type="text" placeholder="e.g. Best on tarmac, tested in wet"
+              value={form.notes} onChange={e => setFormField('notes', e.target.value)}
+            />
           </div>
         </div>
 

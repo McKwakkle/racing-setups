@@ -12,6 +12,7 @@ export default function SetupGrid() {
   const gameSlug   = searchParams.get('game') || ''
   const carSearch  = searchParams.get('car') || ''
   const gameSearch = searchParams.get('gameSearch') || ''
+  const trackSearch = searchParams.get('track') || ''
 
   useEffect(() => {
     async function fetchSetups() {
@@ -23,6 +24,7 @@ export default function SetupGrid() {
 
       if (gameSlug) query = query.eq('games.slug', gameSlug)
       if (carSearch) query = query.ilike('car_name', `%${carSearch}%`)
+      if (trackSearch) query = query.ilike('track_name', `%${trackSearch}%`)
 
       const { data } = await query
       let results = data || []
@@ -34,7 +36,7 @@ export default function SetupGrid() {
       setLoading(false)
     }
     fetchSetups()
-  }, [gameSlug, carSearch, gameSearch])
+  }, [gameSlug, carSearch, gameSearch, trackSearch])
 
   if (loading) {
     return (

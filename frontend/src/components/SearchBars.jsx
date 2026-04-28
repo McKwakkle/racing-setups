@@ -33,6 +33,15 @@ export default function SearchBars() {
           onChange={e => update('car', e.target.value)}
         />
       </div>
+      <div className="search-bar-wrap">
+        <i className="fa-solid fa-map-location-dot" />
+        <input
+          type="text"
+          placeholder="Search by track…"
+          value={searchParams.get('track') || ''}
+          onChange={e => update('track', e.target.value)}
+        />
+      </div>
     </div>
   )
 }

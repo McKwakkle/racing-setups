@@ -61,6 +61,7 @@ export default function SetupDetail() {
       `Game: ${setup.games?.name}`,
       `Car: ${setup.car_name}`,
       `Category: ${setup.categories?.name || 'N/A'}`,
+      setup.track_name ? `Track: ${setup.track_name}` : null,
       `Control: ${setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}`,
       setup.author_name ? `Author: ${setup.author_name}` : null,
       setup.notes ? `\nNotes: ${setup.notes}` : null,
@@ -128,6 +129,7 @@ export default function SetupDetail() {
               <i className={setup.control_type === 'wheel' ? 'fa-solid fa-steering-wheel' : 'fa-solid fa-gamepad'} />
               {' '}{setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}
             </span>
+            {setup.track_name && <span><i className="fa-solid fa-map-location-dot" /> {setup.track_name}</span>}
             {setup.author_name && <span>By {setup.author_name}</span>}
             <span>{date}</span>
           </div>
