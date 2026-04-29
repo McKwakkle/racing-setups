@@ -34,6 +34,12 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) return json({ error: 'Unauthorized' }, 401)
 
+    // Helper: silently truncate strings to a max length
+    function trunc(val: string | null | undefined, max: number): string | null {
+      if (!val) return null
+      return val.length > max ? val.substring(0, max) : val
+    }
+
     // Helper: check admin role
     async function isAdmin(): Promise<boolean> {
       const { data } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
@@ -65,8 +71,8 @@ serve(async (req) => {
 
         const fields = (section.fields ?? []).map((f, fIdx) => ({
           section_id: newSection.id,
-          field_name: f.field_name,
-          field_value: f.field_value,
+          field_name:  trunc(f.field_name,  100) ?? '',
+          field_value: trunc(f.field_value, 500) ?? '',
           sort_order: fIdx,
         }))
         if (fields.length > 0) {
@@ -113,16 +119,16 @@ serve(async (req) => {
 
       const { error: setupErr } = await supabase.from('setups').update({
         game_id:           setup.game_id,
-        car_name:          setup.car_name,
-        title:             setup.title,
+        car_name:          trunc(setup.car_name, 100),
+        title:             trunc(setup.title, 200),
         category_id:       categoryId,
         control_type:      setup.control_type,
-        author_name:       setup.author_name ?? null,
-        notes:             setup.notes ?? null,
-        track_name:        setup.track_name ?? null,
+        author_name:       trunc(setup.author_name, 50),
+        notes:             trunc(setup.notes, 1000),
+        track_name:        trunc(setup.track_name, 150),
         is_track_specific: setup.is_track_specific ?? false,
-        lap_time:          setup.lap_time ?? null,
-        track_conditions:  setup.track_conditions ?? null,
+        lap_time:          trunc(setup.lap_time, 20),
+        track_conditions:  trunc(setup.track_conditions, 50),
         is_public:         setup.is_public ?? true,
       }).eq('id', setup_id)
       if (setupErr) throw setupErr
@@ -185,16 +191,16 @@ serve(async (req) => {
 
     const { data: newSetup, error: setupErr } = await supabase.from('setups').insert({
       game_id:           setup.game_id,
-      car_name:          setup.car_name,
-      title:             setup.title,
+      car_name:          trunc(setup.car_name, 100),
+      title:             trunc(setup.title, 200),
       category_id:       categoryId,
       control_type:      setup.control_type,
-      author_name:       setup.author_name ?? null,
-      notes:             setup.notes ?? null,
-      track_name:        setup.track_name ?? null,
+      author_name:       trunc(setup.author_name, 50),
+      notes:             trunc(setup.notes, 1000),
+      track_name:        trunc(setup.track_name, 150),
       is_track_specific: setup.is_track_specific ?? false,
-      lap_time:          setup.lap_time ?? null,
-      track_conditions:  setup.track_conditions ?? null,
+      lap_time:          trunc(setup.lap_time, 20),
+      track_conditions:  trunc(setup.track_conditions, 50),
       creator_id:        user.id,
       is_public:         setup.is_public ?? true,
     }).select('id').single()

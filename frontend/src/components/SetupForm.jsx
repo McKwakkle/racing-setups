@@ -99,6 +99,7 @@ export default function SetupForm() {
 
   const [submitting, setSubmitting]   = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [csvLoading, setCsvLoading]   = useState(false)
   const [csvMessage, setCsvMessage]   = useState('')
   const [csvError, setCsvError]       = useState('')
   const [promptCopied, setPromptCopied] = useState(false)
@@ -137,10 +138,12 @@ export default function SetupForm() {
     e.target.value = ''
     setCsvMessage('')
     setCsvError('')
+    setCsvLoading(true)
     const reader = new FileReader()
     reader.onload = evt => {
       try { importCSV(evt.target.result) }
       catch { setCsvError('Could not parse file — make sure it matches the template format.') }
+      finally { setCsvLoading(false) }
     }
     reader.readAsText(file)
   }
@@ -238,8 +241,10 @@ export default function SetupForm() {
               <button type="button" className="btn btn-secondary" onClick={downloadTemplate}>
                 <i className="fa-solid fa-download" /> Download Template
               </button>
-              <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
-                <i className="fa-solid fa-file-arrow-up" /> Upload CSV
+              <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current.click()} disabled={csvLoading}>
+                {csvLoading
+                  ? <><i className="fa-solid fa-spinner fa-spin" /> Importing…</>
+                  : <><i className="fa-solid fa-file-arrow-up" /> Upload CSV</>}
               </button>
               <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleCSVUpload} />
             </div>

@@ -61,6 +61,8 @@ export default function SetupFormFields({
                 <label>Lap Time (optional)</label>
                 <input
                   type="text" placeholder="e.g. 1:23.456"
+                  pattern="\d{1,2}:\d{2}\.\d{1,3}"
+                  title="Format: minutes:seconds.milliseconds — e.g. 1:23.456"
                   value={form.lap_time} onChange={e => setFormField('lap_time', e.target.value)}
                 />
               </div>
