@@ -13,6 +13,18 @@
   margin-bottom: var(--space-md);
 }
 
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md) 0 var(--space-xl);
+}
+
+.load-more-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-left: var(--space-xs);
+}
+
 @media (max-width: 768px) {
   .setup-grid { grid-template-columns: 1fr; }
 }
