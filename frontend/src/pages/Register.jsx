@@ -94,6 +94,7 @@ export default function Register() {
           <p>Join the crew and share your setups</p>
         </div>
 
+        {/* OAuth buttons — uncomment once Google/Discord apps are configured
         <div className="oauth-buttons">
           <button className="btn-oauth" onClick={() => signUpWith('google')}>
             <i className="fa-brands fa-google" /> Sign up with Google
@@ -102,8 +103,8 @@ export default function Register() {
             <i className="fa-brands fa-discord" /> Sign up with Discord
           </button>
         </div>
-
         <div className="auth-divider"><span>or</span></div>
+        */}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
