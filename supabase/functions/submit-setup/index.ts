@@ -88,14 +88,17 @@ serve(async (req) => {
       const { error: setupError } = await supabase
         .from('setups')
         .update({
-          game_id:      setup.game_id,
-          car_name:     setup.car_name,
-          title:        setup.title,
-          category_id:  categoryId,
-          control_type: setup.control_type,
-          author_name:  setup.author_name ?? null,
-          notes:        setup.notes ?? null,
-          track_name:   setup.track_name ?? null,
+          game_id:           setup.game_id,
+          car_name:          setup.car_name,
+          title:             setup.title,
+          category_id:       categoryId,
+          control_type:      setup.control_type,
+          author_name:       setup.author_name ?? null,
+          notes:             setup.notes ?? null,
+          track_name:        setup.track_name ?? null,
+          is_track_specific: setup.is_track_specific ?? false,
+          lap_time:          setup.lap_time ?? null,
+          track_conditions:  setup.track_conditions ?? null,
         })
         .eq('id', setup_id)
       if (setupError) throw setupError
@@ -149,14 +152,17 @@ serve(async (req) => {
       const { data: newSetup, error: setupError } = await supabase
         .from('setups')
         .insert({
-          game_id:      original.game_id,
-          car_name:     original.car_name,
-          title:        original.title + ' (Copy)',
-          category_id:  original.category_id,
-          control_type: original.control_type,
-          author_name:  original.author_name,
-          notes:        original.notes,
-          track_name:   null,
+          game_id:           original.game_id,
+          car_name:          original.car_name,
+          title:             original.title + ' (Copy)',
+          category_id:       original.category_id,
+          control_type:      original.control_type,
+          author_name:       original.author_name,
+          notes:             original.notes,
+          track_name:        null,
+          is_track_specific: original.is_track_specific,
+          lap_time:          original.lap_time,
+          track_conditions:  original.track_conditions,
         })
         .select('id')
         .single()
@@ -213,14 +219,17 @@ serve(async (req) => {
     const { data: newSetup, error: setupError } = await supabase
       .from('setups')
       .insert({
-        game_id:      setup.game_id,
-        car_name:     setup.car_name,
-        title:        setup.title,
-        category_id:  categoryId,
-        control_type: setup.control_type,
-        author_name:  setup.author_name ?? null,
-        notes:        setup.notes ?? null,
-        track_name:   setup.track_name ?? null,
+        game_id:           setup.game_id,
+        car_name:          setup.car_name,
+        title:             setup.title,
+        category_id:       categoryId,
+        control_type:      setup.control_type,
+        author_name:       setup.author_name ?? null,
+        notes:             setup.notes ?? null,
+        track_name:        setup.track_name ?? null,
+        is_track_specific: setup.is_track_specific ?? false,
+        lap_time:          setup.lap_time ?? null,
+        track_conditions:  setup.track_conditions ?? null,
       })
       .select('id')
       .single()

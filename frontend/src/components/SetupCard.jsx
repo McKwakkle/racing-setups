@@ -32,6 +32,9 @@ export default function SetupCard({ setup, topAuthors = {} }) {
         {setup.track_name && (
           <span><i className="fa-solid fa-map-location-dot" /> {setup.track_name}</span>
         )}
+        {setup.track_conditions && (
+          <span className="card-conditions"><i className="fa-solid fa-cloud-sun" /> {setup.track_conditions}</span>
+        )}
       </div>
 
       <div className="setup-card-footer">

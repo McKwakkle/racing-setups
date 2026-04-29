@@ -16,6 +16,9 @@ const CSV_TEMPLATE = [
   'META,Author,YourGamertag',
   'META,Notes,Optional notes about this setup',
   'META,Track,Bristol Motor Speedway',
+  'META,SetupType,track-specific',
+  'META,LapTime,1:23.456',
+  'META,Conditions,Dry',
   'SECTION,Suspension,',
   'FIELD,Front Spring Rate,800',
   'FIELD,Rear Spring Rate,600',
@@ -38,7 +41,10 @@ META,Category,[e.g. Dirt Oval, Street, Drift, Rally, Grip, Drag]
 META,Control,[wheel OR remote]
 META,Author,[gamertag — optional, leave blank if not needed]
 META,Notes,[any notes about conditions or usage — optional]
-META,Track,[specific track name — optional]
+META,Track,[specific track name — required for track-specific, optional for generic]
+META,SetupType,[track-specific OR generic]
+META,LapTime,[lap time e.g. 1:23.456 — optional, only for track-specific]
+META,Conditions,[track conditions e.g. Dry, Wet, Intermediate, Muddy — optional, only for track-specific]
 SECTION,[Section Name],
 FIELD,[Setting Name],[Value]
 FIELD,[Setting Name],[Value]
@@ -87,6 +93,7 @@ export default function SetupForm() {
   const [form, setForm] = useState({
     game_id: '', car_name: '', title: '', category_id: '',
     newCategory: '', control_type: 'wheel', author_name: '', notes: '', track_name: '',
+    is_track_specific: false, lap_time: '', track_conditions: '',
   })
   const [sections, setSections] = useState([emptySection()])
   const [showPin, setShowPin] = useState(false)
@@ -191,7 +198,10 @@ export default function SetupForm() {
           case 'title':  newForm.title       = value; break
           case 'author': newForm.author_name = value; break
           case 'notes':  newForm.notes       = value; break
-          case 'track':  newForm.track_name  = value; break
+          case 'track':     newForm.track_name       = value; break
+          case 'setuptype': newForm.is_track_specific = value.toLowerCase().includes('track'); break
+          case 'laptime':   newForm.lap_time          = value; break
+          case 'conditions': newForm.track_conditions  = value; break
           case 'control':
             newForm.control_type = value.toLowerCase().includes('wheel') ? 'wheel' : 'remote'
             break
@@ -236,10 +246,13 @@ export default function SetupForm() {
         title:        form.title.trim(),
         category_id:  form.category_id || null,
         control_type: form.control_type,
-        author_name:  form.author_name.trim() || null,
-        notes:        form.notes.trim() || null,
-        track_name:   form.track_name.trim() || null,
-        newCategory:  form.newCategory.trim() || null,
+        author_name:       form.author_name.trim() || null,
+        notes:             form.notes.trim() || null,
+        track_name:        form.is_track_specific ? form.track_name.trim() : (form.track_name.trim() || null),
+        is_track_specific: form.is_track_specific,
+        lap_time:          form.is_track_specific ? (form.lap_time.trim() || null) : null,
+        track_conditions:  form.is_track_specific ? (form.track_conditions.trim() || null) : null,
+        newCategory:       form.newCategory.trim() || null,
       },
       sections: sections
         .filter(sec => sec.name.trim())
@@ -338,6 +351,90 @@ export default function SetupForm() {
             />
           </div>
 
+          <div className="form-group">
+            <label>Setup Type *</label>
+            <div className="control-type-toggle">
+              <button
+                type="button"
+                className={`control-type-btn${!form.is_track_specific ? ' active' : ''}`}
+                onClick={() => setFormField('is_track_specific', false)}
+              >
+                <i className="fa-solid fa-globe" /> Generic
+              </button>
+              <button
+                type="button"
+                className={`control-type-btn${form.is_track_specific ? ' active' : ''}`}
+                onClick={() => setFormField('is_track_specific', true)}
+              >
+                <i className="fa-solid fa-map-location-dot" /> Track Specific
+              </button>
+            </div>
+          </div>
+
+          {form.is_track_specific ? (
+            <>
+              <div className="form-group">
+                <label>Track *</label>
+                <input
+                  type="text" placeholder="e.g. Nürburgring GP"
+                  value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Lap Time (optional)</label>
+                  <input
+                    type="text" placeholder="e.g. 1:23.456"
+                    value={form.lap_time} onChange={e => setFormField('lap_time', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Track Conditions (optional)</label>
+                  <input
+                    type="text" placeholder="e.g. Dry"
+                    list="track-conditions-list"
+                    value={form.track_conditions} onChange={e => setFormField('track_conditions', e.target.value)}
+                  />
+                  <datalist id="track-conditions-list">
+                    <option value="Dry" />
+                    <option value="Wet" />
+                    <option value="Intermediate" />
+                    <option value="Damp" />
+                    <option value="Muddy" />
+                    <option value="Tacky" />
+                    <option value="Gravel" />
+                    <option value="Snow" />
+                  </datalist>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Your Gamertag (optional)</label>
+                <input
+                  type="text" placeholder="e.g. SpeedKing99"
+                  value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Track (optional)</label>
+                <input
+                  type="text" placeholder="e.g. Nürburgring GP"
+                  value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Your Gamertag (optional)</label>
+                <input
+                  type="text" placeholder="e.g. SpeedKing99"
+                  value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="form-row">
             <div className="form-group">
               <label>Category</label>
@@ -375,22 +472,6 @@ export default function SetupForm() {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Track (optional)</label>
-              <input
-                type="text" placeholder="e.g. Nürburgring GP"
-                value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Your Gamertag (optional)</label>
-              <input
-                type="text" placeholder="e.g. SpeedKing99"
-                value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
-              />
-            </div>
-          </div>
           <div className="form-group">
             <label>Notes (optional)</label>
             <input

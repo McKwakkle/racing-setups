@@ -59,6 +59,11 @@
   font-size: 0.8rem;
 }
 
+.card-conditions {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
 .setup-card-footer {
   display: flex;
   align-items: center;

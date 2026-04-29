@@ -34,15 +34,18 @@ export default function EditSetup() {
       if (catList) setCategories(catList)
 
       setForm({
-        game_id:      setup.game_id,
-        car_name:     setup.car_name,
-        title:        setup.title,
-        category_id:  setup.category_id || '',
-        newCategory:  '',
-        control_type: setup.control_type,
-        author_name:  setup.author_name || '',
-        notes:        setup.notes || '',
-        track_name:   setup.track_name || '',
+        game_id:           setup.game_id,
+        car_name:          setup.car_name,
+        title:             setup.title,
+        category_id:       setup.category_id || '',
+        newCategory:       '',
+        control_type:      setup.control_type,
+        author_name:       setup.author_name || '',
+        notes:             setup.notes || '',
+        track_name:        setup.track_name || '',
+        is_track_specific: setup.is_track_specific || false,
+        lap_time:          setup.lap_time || '',
+        track_conditions:  setup.track_conditions || '',
       })
 
       setSections(
@@ -106,10 +109,13 @@ export default function EditSetup() {
         title:        form.title.trim(),
         category_id:  form.category_id || null,
         control_type: form.control_type,
-        author_name:  form.author_name.trim() || null,
-        notes:        form.notes.trim() || null,
-        track_name:   form.track_name.trim() || null,
-        newCategory:  form.newCategory.trim() || null,
+        author_name:       form.author_name.trim() || null,
+        notes:             form.notes.trim() || null,
+        track_name:        form.is_track_specific ? form.track_name.trim() : (form.track_name.trim() || null),
+        is_track_specific: form.is_track_specific,
+        lap_time:          form.is_track_specific ? (form.lap_time.trim() || null) : null,
+        track_conditions:  form.is_track_specific ? (form.track_conditions.trim() || null) : null,
+        newCategory:       form.newCategory.trim() || null,
       },
       sections: sections
         .filter(sec => sec.name.trim())
@@ -173,6 +179,90 @@ export default function EditSetup() {
             />
           </div>
 
+          <div className="form-group">
+            <label>Setup Type *</label>
+            <div className="control-type-toggle">
+              <button
+                type="button"
+                className={`control-type-btn${!form.is_track_specific ? ' active' : ''}`}
+                onClick={() => setFormField('is_track_specific', false)}
+              >
+                <i className="fa-solid fa-globe" /> Generic
+              </button>
+              <button
+                type="button"
+                className={`control-type-btn${form.is_track_specific ? ' active' : ''}`}
+                onClick={() => setFormField('is_track_specific', true)}
+              >
+                <i className="fa-solid fa-map-location-dot" /> Track Specific
+              </button>
+            </div>
+          </div>
+
+          {form.is_track_specific ? (
+            <>
+              <div className="form-group">
+                <label>Track *</label>
+                <input
+                  type="text" placeholder="e.g. Nürburgring GP"
+                  value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Lap Time (optional)</label>
+                  <input
+                    type="text" placeholder="e.g. 1:23.456"
+                    value={form.lap_time} onChange={e => setFormField('lap_time', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Track Conditions (optional)</label>
+                  <input
+                    type="text" placeholder="e.g. Dry"
+                    list="track-conditions-list"
+                    value={form.track_conditions} onChange={e => setFormField('track_conditions', e.target.value)}
+                  />
+                  <datalist id="track-conditions-list">
+                    <option value="Dry" />
+                    <option value="Wet" />
+                    <option value="Intermediate" />
+                    <option value="Damp" />
+                    <option value="Muddy" />
+                    <option value="Tacky" />
+                    <option value="Gravel" />
+                    <option value="Snow" />
+                  </datalist>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Your Gamertag (optional)</label>
+                <input
+                  type="text" placeholder="e.g. SpeedKing99"
+                  value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Track (optional)</label>
+                <input
+                  type="text" placeholder="e.g. Nürburgring GP"
+                  value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Your Gamertag (optional)</label>
+                <input
+                  type="text" placeholder="e.g. SpeedKing99"
+                  value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="form-row">
             <div className="form-group">
               <label>Category</label>
@@ -210,22 +300,6 @@ export default function EditSetup() {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Track (optional)</label>
-              <input
-                type="text" placeholder="e.g. Nürburgring GP"
-                value={form.track_name} onChange={e => setFormField('track_name', e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Your Gamertag (optional)</label>
-              <input
-                type="text" placeholder="e.g. SpeedKing99"
-                value={form.author_name} onChange={e => setFormField('author_name', e.target.value)}
-              />
-            </div>
-          </div>
           <div className="form-group">
             <label>Notes (optional)</label>
             <input

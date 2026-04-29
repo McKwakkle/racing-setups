@@ -82,6 +82,8 @@ export default function SetupDetail() {
       `Car: ${setup.car_name}`,
       `Category: ${setup.categories?.name || 'N/A'}`,
       setup.track_name ? `Track: ${setup.track_name}` : null,
+      setup.lap_time ? `Lap Time: ${setup.lap_time}` : null,
+      setup.track_conditions ? `Conditions: ${setup.track_conditions}` : null,
       `Control: ${setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}`,
       setup.author_name ? `Author: ${setup.author_name}` : null,
       setup.notes ? `\nNotes: ${setup.notes}` : null,
@@ -187,6 +189,8 @@ export default function SetupDetail() {
               {' '}{setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}
             </span>
             {setup.track_name && <span><i className="fa-solid fa-map-location-dot" /> {setup.track_name}</span>}
+            {setup.lap_time && <span><i className="fa-solid fa-stopwatch" /> {setup.lap_time}</span>}
+            {setup.track_conditions && <span><i className="fa-solid fa-cloud-sun" /> {setup.track_conditions}</span>}
             {setup.author_name && (
               <span>
                 {topAuthor?.toLowerCase() === setup.author_name.toLowerCase() && (
