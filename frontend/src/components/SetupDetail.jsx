@@ -17,7 +17,8 @@ export default function SetupDetail() {
   const [copied, setCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
 
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
+  const isAdmin = profile?.is_admin === true
   const [bookmarked, setBookmarked] = useState(false)
   const [bookmarking, setBookmarking] = useState(false)
   const [topAuthor, setTopAuthor] = useState(null)
@@ -251,14 +252,14 @@ export default function SetupDetail() {
             </button>
           )}
           {session && setup.creator_id === session.user.id && (
-            <>
-              <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
-                <i className="fa-solid fa-pen" /> Edit
-              </button>
-              <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
-                <i className="fa-solid fa-trash" /> Delete
-              </button>
-            </>
+            <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
+              <i className="fa-solid fa-pen" /> Edit
+            </button>
+          )}
+          {session && (setup.creator_id === session.user.id || isAdmin) && (
+            <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
+              <i className="fa-solid fa-trash" /> Delete
+            </button>
           )}
         </div>
       </div>
