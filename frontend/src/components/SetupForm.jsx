@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import '../styles/SetupForm.css'
@@ -6,8 +6,48 @@ import '../styles/SetupForm.css'
 const emptyField   = () => ({ id: crypto.randomUUID(), field_name: '', field_value: '' })
 const emptySection = () => ({ id: crypto.randomUUID(), name: '', fields: [emptyField()] })
 
+const CSV_TEMPLATE = [
+  'Type,Name,Value',
+  'META,Game,World of Outlaws: Dirt Racing 24',
+  'META,Car,Pro Late Model',
+  'META,Title,Bristol Motor Speedway - Race Trim',
+  'META,Category,Dirt Oval',
+  'META,Control,remote',
+  'META,Author,YourGamertag',
+  'META,Notes,Optional notes about this setup',
+  'META,Track,Bristol Motor Speedway',
+  'SECTION,Suspension,',
+  'FIELD,Front Spring Rate,800',
+  'FIELD,Rear Spring Rate,600',
+  'SECTION,Tires,',
+  'FIELD,Left Front Pressure,12.5',
+  'FIELD,Right Front Pressure,12.5',
+  'FIELD,Left Rear Pressure,14',
+  'FIELD,Right Rear Pressure,14',
+].join('\n')
+
+function parseCSVRow(row) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result
+}
+
 export default function SetupForm() {
   const navigate = useNavigate()
+  const fileInputRef = useRef(null)
   const [games, setGames] = useState([])
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState({
@@ -19,6 +59,8 @@ export default function SetupForm() {
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [csvMessage, setCsvMessage] = useState('')
+  const [csvError, setCsvError] = useState('')
 
   useEffect(() => {
     supabase.from('games').select('*').order('name').then(({ data }) => data && setGames(data))
@@ -47,6 +89,90 @@ export default function SetupForm() {
       ? { ...sec, fields: sec.fields.map(f => f.id === fid ? { ...f, [key]: val } : f) }
       : sec
     ))
+  }
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'setup-template.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleCSVUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    e.target.value = ''
+    setCsvMessage('')
+    setCsvError('')
+
+    const reader = new FileReader()
+    reader.onload = evt => {
+      try {
+        importCSV(evt.target.result)
+      } catch (err) {
+        setCsvError('Could not parse file — make sure it matches the template format.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  function importCSV(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    if (lines.length < 2) throw new Error('Empty file')
+
+    const rows = lines.slice(1).map(parseCSVRow)
+    const newForm = {
+      game_id: '', car_name: '', title: '', category_id: '',
+      newCategory: '', control_type: 'wheel', author_name: '', notes: '', track_name: '',
+    }
+    const newSections = []
+    let currentSection = null
+    let sectionCount = 0
+
+    for (const cols of rows) {
+      const type = (cols[0] || '').toUpperCase()
+      const name = (cols[1] || '').trim()
+      const value = (cols[2] || '').trim()
+
+      if (type === 'META') {
+        switch (name.toLowerCase()) {
+          case 'game': {
+            const match = games.find(g => g.name.toLowerCase() === value.toLowerCase())
+            if (match) newForm.game_id = match.id
+            break
+          }
+          case 'car':      newForm.car_name     = value; break
+          case 'title':    newForm.title        = value; break
+          case 'author':   newForm.author_name  = value; break
+          case 'notes':    newForm.notes        = value; break
+          case 'track':    newForm.track_name   = value; break
+          case 'control':
+            newForm.control_type = value.toLowerCase().includes('wheel') ? 'wheel' : 'remote'
+            break
+          case 'category': {
+            const match = categories.find(c => c.name.toLowerCase() === value.toLowerCase())
+            if (match) newForm.category_id = match.id
+            else newForm.newCategory = value
+            break
+          }
+        }
+      } else if (type === 'SECTION' && name) {
+        if (currentSection) newSections.push(currentSection)
+        currentSection = { id: crypto.randomUUID(), name, fields: [] }
+        sectionCount++
+      } else if (type === 'FIELD' && name && currentSection) {
+        currentSection.fields.push({ id: crypto.randomUUID(), field_name: name, field_value: value })
+      }
+    }
+
+    if (currentSection) newSections.push(currentSection)
+
+    setForm(newForm)
+    setSections(newSections.length > 0 ? newSections : [emptySection()])
+    setCsvMessage(`Imported ${sectionCount} section${sectionCount !== 1 ? 's' : ''} — review the fields below then save.`)
   }
 
   function handleSubmitClick(e) {
@@ -99,6 +225,34 @@ export default function SetupForm() {
     <div className="setup-form-page">
       <h1>New Setup</h1>
       <form className="setup-form" onSubmit={handleSubmitClick}>
+
+        {/* CSV Import */}
+        <div className="csv-import-card">
+          <div className="csv-import-info">
+            <i className="fa-solid fa-file-csv csv-import-icon" />
+            <div>
+              <strong>Import from CSV</strong>
+              <p>Download the template, fill it in, then upload to auto-fill the form.</p>
+            </div>
+          </div>
+          <div className="csv-import-actions">
+            <button type="button" className="btn btn-secondary" onClick={downloadTemplate}>
+              <i className="fa-solid fa-download" /> Download Template
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
+              <i className="fa-solid fa-file-arrow-up" /> Upload CSV
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              style={{ display: 'none' }}
+              onChange={handleCSVUpload}
+            />
+          </div>
+          {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
+          {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
+        </div>
 
         {/* Basic info */}
         <div className="form-card">
