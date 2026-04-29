@@ -1,0 +1,173 @@
+@import './variables.css';
+
+.auth-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg) var(--space-md);
+}
+
+.auth-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
+.auth-icon {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.auth-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.auth-header p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.btn-oauth {
+  width: 100%;
+  justify-content: center;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  transition: border-color var(--transition), color var(--transition);
+}
+.btn-oauth:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+.btn-oauth .fa-google   { color: #ea4335; }
+.btn-oauth .fa-discord  { color: #5865f2; }
+.btn-oauth:hover .fa-google,
+.btn-oauth:hover .fa-discord { color: inherit; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.auth-form { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.auth-error {
+  font-size: 0.85rem;
+  color: var(--color-error);
+  background: rgba(239,68,68,0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.auth-success {
+  font-size: 0.85rem;
+  color: var(--color-success);
+  background: rgba(74,222,128,0.1);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Password strength meter */
+.password-strength {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-border);
+  transition: background var(--transition);
+}
+.strength-bar.filled-1 { background: var(--color-error); }
+.strength-bar.filled-2 { background: #f97316; }
+.strength-bar.filled-3 { background: #eab308; }
+.strength-bar.filled-4 { background: var(--color-success); }
+
+.strength-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.strength-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.75rem;
+}
+
+.strength-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-muted);
+}
+.strength-rule.met { color: var(--color-success); }
+.strength-rule i { font-size: 0.65rem; }

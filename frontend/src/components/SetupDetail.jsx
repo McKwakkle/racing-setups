@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 import CategoryBadge from './CategoryBadge'
 import RatingButtons from './RatingButtons'
 import '../styles/SetupDetail.css'
@@ -16,6 +17,9 @@ export default function SetupDetail() {
   const [copied, setCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
 
+  const { session } = useAuth()
+  const [bookmarked, setBookmarked] = useState(false)
+  const [bookmarking, setBookmarking] = useState(false)
   const [topAuthor, setTopAuthor] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletePin, setDeletePin] = useState('')
@@ -69,10 +73,16 @@ export default function SetupDetail() {
         .maybeSingle()
       setTopAuthor(topData?.author_name || null)
 
+      if (session) {
+        const { data: bm } = await supabase.from('bookmarks')
+          .select('setup_id').eq('user_id', session.user.id).eq('setup_id', id).maybeSingle()
+        setBookmarked(!!bm)
+      }
+
       setLoading(false)
     }
     load()
-  }, [id, navigate])
+  }, [id, navigate, session])
 
   function copyToClipboard() {
     if (!setup) return
@@ -106,15 +116,29 @@ export default function SetupDetail() {
     setTimeout(() => setLinkCopied(false), 2000)
   }
 
+  async function toggleBookmark() {
+    if (!session) return
+    setBookmarking(true)
+    if (bookmarked) {
+      await supabase.from('bookmarks').delete().eq('user_id', session.user.id).eq('setup_id', id)
+      setBookmarked(false)
+    } else {
+      await supabase.from('bookmarks').insert({ user_id: session.user.id, setup_id: id })
+      setBookmarked(true)
+    }
+    setBookmarking(false)
+  }
+
   async function handleDelete(e) {
     e.preventDefault()
     setDeletePinError('')
     setDeleting(true)
 
+    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-      body: JSON.stringify({ pin: deletePin, action: 'delete_setup', setup_id: id }),
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${s.access_token}` },
+      body: JSON.stringify({ action: 'delete_setup', setup_id: id }),
     })
 
     setDeleting(false)
@@ -129,10 +153,11 @@ export default function SetupDetail() {
     setDupPinError('')
     setDuplicating(true)
 
+    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-      body: JSON.stringify({ pin: dupPin, action: 'duplicate_setup', setup_id: id }),
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${s.access_token}` },
+      body: JSON.stringify({ action: 'duplicate_setup', setup_id: id }),
     })
 
     setDuplicating(false)
@@ -214,15 +239,27 @@ export default function SetupDetail() {
               ? <span className="copy-success"><i className="fa-solid fa-check" /> Copied!</span>
               : <><i className="fa-solid fa-link" /> Copy Link</>}
           </button>
-          <button className="btn btn-secondary" onClick={() => { setDupPin(''); setDupPinError(''); setShowDupModal(true) }}>
-            <i className="fa-solid fa-copy" /> Duplicate
-          </button>
-          <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
-            <i className="fa-solid fa-pen" /> Edit
-          </button>
-          <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
-            <i className="fa-solid fa-trash" /> Delete
-          </button>
+          {session && (
+            <button className={`btn btn-secondary${bookmarked ? ' setup-bookmarked-btn' : ''}`} onClick={toggleBookmark} disabled={bookmarking}>
+              <i className={`fa-${bookmarked ? 'solid' : 'regular'} fa-bookmark`} />
+              {bookmarked ? 'Bookmarked' : 'Bookmark'}
+            </button>
+          )}
+          {session && (
+            <button className="btn btn-secondary" onClick={() => { setDupPinError(''); setShowDupModal(true) }}>
+              <i className="fa-solid fa-copy" /> Duplicate
+            </button>
+          )}
+          {session && setup.creator_id === session.user.id && (
+            <>
+              <button className="btn btn-secondary" onClick={() => navigate(`/edit/${id}`)}>
+                <i className="fa-solid fa-pen" /> Edit
+              </button>
+              <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
+                <i className="fa-solid fa-trash" /> Delete
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -232,48 +269,50 @@ export default function SetupDetail() {
         </div>
       )}
 
-      <RatingButtons setupId={id} />
+      <RatingButtons setupId={id} creatorId={setup.creator_id} />
 
-      {sections.map(sec => (
-        <div key={sec.id} className="setup-section">
-          <div className="setup-section-title">{sec.name}</div>
-          <table className="setup-section-table">
-            <tbody>
-              {sec.setup_fields.map(f => (
-                <tr key={f.id}>
-                  <td>{f.field_name}</td>
-                  <td>{f.field_value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {session ? (
+        sections.map(sec => (
+          <div key={sec.id} className="setup-section">
+            <div className="setup-section-title">{sec.name}</div>
+            <table className="setup-section-table">
+              <tbody>
+                {sec.setup_fields.map(f => (
+                  <tr key={f.id}>
+                    <td>{f.field_name}</td>
+                    <td>{f.field_value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
+      ) : (
+        <div className="setup-auth-gate">
+          <i className="fa-solid fa-lock" />
+          <h3>Sign in to view the full setup</h3>
+          <p>Create a free account to access all setup settings, upvote, and bookmark setups.</p>
+          <div className="setup-auth-gate-actions">
+            <Link to="/login" className="btn btn-primary"><i className="fa-solid fa-right-to-bracket" /> Sign In</Link>
+            <Link to="/register" className="btn btn-secondary"><i className="fa-solid fa-user-plus" /> Create Account</Link>
+          </div>
         </div>
-      ))}
+      )}
 
       {showDupModal && (
         <div className="pin-modal-overlay" onClick={() => setShowDupModal(false)}>
           <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handleDuplicate}>
             <h3><i className="fa-solid fa-copy" /> Duplicate Setup</h3>
             <p>
-              Creates a copy of <strong>{setup.title}</strong> with the same sections and setting names,
-              but all values left blank so you can fill them in for a different track.
+              Creates a copy of <strong>{setup.title}</strong> with the same sections and field names,
+              but all values left blank. Opens in edit mode as a private draft.
             </p>
-            <input
-              className="pin-input"
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="······"
-              value={dupPin}
-              onChange={e => setDupPin(e.target.value.replace(/\D/g, ''))}
-              autoFocus
-            />
             {dupPinError && <p className="pin-error">{dupPinError}</p>}
             <div className="pin-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowDupModal(false)}>
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary" disabled={duplicating || dupPin.length < 4}>
+              <button type="submit" className="btn btn-primary" disabled={duplicating}>
                 {duplicating ? 'Duplicating…' : 'Duplicate & Edit'}
               </button>
             </div>
@@ -286,22 +325,12 @@ export default function SetupDetail() {
           <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handleDelete}>
             <h3><i className="fa-solid fa-triangle-exclamation" /> Delete Setup</h3>
             <p>This will permanently delete <strong>{setup.title}</strong>. This cannot be undone.</p>
-            <input
-              className="pin-input"
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="······"
-              value={deletePin}
-              onChange={e => setDeletePin(e.target.value.replace(/\D/g, ''))}
-              autoFocus
-            />
             {deletePinError && <p className="pin-error">{deletePinError}</p>}
             <div className="pin-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary" disabled={deleting || deletePin.length < 4}
+              <button type="submit" className="btn btn-primary" disabled={deleting}
                 style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
                 {deleting ? 'Deleting…' : 'Delete Setup'}
               </button>

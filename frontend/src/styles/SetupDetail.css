@@ -130,6 +130,44 @@
 .setup-delete-btn { color: var(--color-error); border-color: var(--color-error); }
 .setup-delete-btn:hover { background: rgba(239,68,68,0.1); }
 
+.setup-bookmarked-btn { color: var(--color-primary); border-color: var(--color-primary); }
+
+/* Auth gate — shown to anonymous users instead of sections */
+.setup-auth-gate {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.setup-auth-gate i {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+}
+
+.setup-auth-gate h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.setup-auth-gate p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  max-width: 400px;
+}
+
+.setup-auth-gate-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .setup-detail-header { flex-direction: column; }
   .setup-detail-actions { width: 100%; flex-wrap: wrap; }

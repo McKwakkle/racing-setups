@@ -11,214 +11,107 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const json = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+
   try {
     const body = await req.json()
-    const { pin, action } = body
+    const { action } = body
 
-    const correctPin = Deno.env.get('SETUP_PIN')
-    if (!correctPin || pin !== correctPin) {
-      return new Response(JSON.stringify({ error: 'Invalid PIN' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    // Verify JWT from Authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
+    const token = authHeader.replace('Bearer ', '')
+
+    // Service role client for all DB writes
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Add a new game
-    if (action === 'add_game') {
-      const { game } = body
-      const { data, error } = await supabase
-        .from('games')
-        .insert({ name: game.name, slug: game.slug })
-        .select('id')
-        .single()
-      if (error) throw error
-      return new Response(JSON.stringify({ id: data.id }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    // Verify token and get user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) return json({ error: 'Unauthorized' }, 401)
+
+    // Helper: check admin role
+    async function isAdmin(): Promise<boolean> {
+      const { data } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+      return data?.is_admin === true
     }
 
-    // Delete a game (and all its setups)
-    if (action === 'delete_game') {
-      const { game_id } = body
-      await supabase.from('setups').delete().eq('game_id', game_id)
-      const { error } = await supabase.from('games').delete().eq('id', game_id)
-      if (error) throw error
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // Delete a single setup
-    if (action === 'delete_setup') {
-      const { setup_id } = body
-      const { error } = await supabase.from('setups').delete().eq('id', setup_id)
-      if (error) throw error
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // Update an existing setup
-    if (action === 'update_setup') {
-      const { setup_id, setup, sections } = body
-
-      let categoryId = setup.category_id || null
+    // Helper: resolve or create category
+    async function resolveCategory(setup: { category_id?: string; newCategory?: string }): Promise<string | null> {
       if (setup.newCategory) {
         const name = setup.newCategory.trim()
-        const { data: existing } = await supabase
-          .from('categories').select('id').ilike('name', name).maybeSingle()
-        if (existing) {
-          categoryId = existing.id
-        } else {
-          const { data: created, error: catErr } = await supabase
-            .from('categories').insert({ name }).select('id').single()
-          if (catErr) throw catErr
-          categoryId = created.id
-        }
+        const { data: existing } = await supabase.from('categories').select('id').ilike('name', name).maybeSingle()
+        if (existing) return existing.id
+        const { data: created, error } = await supabase.from('categories').insert({ name }).select('id').single()
+        if (error) throw error
+        return created.id
       }
+      return setup.category_id || null
+    }
 
-      const { error: setupError } = await supabase
-        .from('setups')
-        .update({
-          game_id:           setup.game_id,
-          car_name:          setup.car_name,
-          title:             setup.title,
-          category_id:       categoryId,
-          control_type:      setup.control_type,
-          author_name:       setup.author_name ?? null,
-          notes:             setup.notes ?? null,
-          track_name:        setup.track_name ?? null,
-          is_track_specific: setup.is_track_specific ?? false,
-          lap_time:          setup.lap_time ?? null,
-          track_conditions:  setup.track_conditions ?? null,
-        })
-        .eq('id', setup_id)
-      if (setupError) throw setupError
-
-      await supabase.from('setup_sections').delete().eq('setup_id', setup_id)
-
+    // Helper: insert sections and fields
+    async function insertSections(setupId: string, sections: Array<{ name: string; fields: Array<{ field_name: string; field_value: string }> }>) {
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const section = sections[sIdx]
-        const { data: newSection, error: sectionError } = await supabase
+        const { data: newSection, error: sErr } = await supabase
           .from('setup_sections')
-          .insert({ setup_id, name: section.name, sort_order: sIdx })
-          .select('id')
-          .single()
-        if (sectionError) throw sectionError
+          .insert({ setup_id: setupId, name: section.name, sort_order: sIdx })
+          .select('id').single()
+        if (sErr) throw sErr
 
-        const fields = (section.fields ?? []).map(
-          (f: { field_name: string; field_value: string }, fIdx: number) => ({
-            section_id:  newSection.id,
-            field_name:  f.field_name,
-            field_value: f.field_value,
-            sort_order:  fIdx,
-          })
-        )
+        const fields = (section.fields ?? []).map((f, fIdx) => ({
+          section_id: newSection.id,
+          field_name: f.field_name,
+          field_value: f.field_value,
+          sort_order: fIdx,
+        }))
         if (fields.length > 0) {
-          const { error: fieldsError } = await supabase.from('setup_fields').insert(fields)
-          if (fieldsError) throw fieldsError
+          const { error: fErr } = await supabase.from('setup_fields').insert(fields)
+          if (fErr) throw fErr
         }
       }
-
-      return new Response(JSON.stringify({ id: setup_id }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
     }
 
-    // Duplicate a setup (same structure, blank values, no track)
-    if (action === 'duplicate_setup') {
-      const { setup_id } = body
-
-      const { data: original, error: fetchError } = await supabase
-        .from('setups').select('*').eq('id', setup_id).single()
-      if (fetchError) throw fetchError
-
-      const { data: secs, error: secsError } = await supabase
-        .from('setup_sections')
-        .select('*, setup_fields(*)')
-        .eq('setup_id', setup_id)
-        .order('sort_order')
-      if (secsError) throw secsError
-
-      const { data: newSetup, error: setupError } = await supabase
-        .from('setups')
-        .insert({
-          game_id:           original.game_id,
-          car_name:          original.car_name,
-          title:             original.title + ' (Copy)',
-          category_id:       original.category_id,
-          control_type:      original.control_type,
-          author_name:       original.author_name,
-          notes:             original.notes,
-          track_name:        null,
-          is_track_specific: original.is_track_specific,
-          lap_time:          original.lap_time,
-          track_conditions:  original.track_conditions,
-        })
-        .select('id')
-        .single()
-      if (setupError) throw setupError
-
-      for (let sIdx = 0; sIdx < (secs || []).length; sIdx++) {
-        const sec = secs[sIdx]
-        const { data: newSection, error: sectionError } = await supabase
-          .from('setup_sections')
-          .insert({ setup_id: newSetup.id, name: sec.name, sort_order: sIdx })
-          .select('id')
-          .single()
-        if (sectionError) throw sectionError
-
-        const fields = (sec.setup_fields || [])
-          .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-          .map((f: { field_name: string }, fIdx: number) => ({
-            section_id:  newSection.id,
-            field_name:  f.field_name,
-            field_value: '',
-            sort_order:  fIdx,
-          }))
-        if (fields.length > 0) {
-          const { error: fieldsError } = await supabase.from('setup_fields').insert(fields)
-          if (fieldsError) throw fieldsError
-        }
-      }
-
-      return new Response(JSON.stringify({ id: newSetup.id }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    // ── Add game (admin only) ──────────────────────────────────────────────
+    if (action === 'add_game') {
+      if (!await isAdmin()) return json({ error: 'Forbidden' }, 403)
+      const { game } = body
+      const { data, error } = await supabase.from('games').insert({ name: game.name, slug: game.slug }).select('id').single()
+      if (error) throw error
+      return json({ id: data.id })
     }
 
-    // Submit a setup (default action)
-    const { setup, sections } = body
-
-    // Resolve or create category
-    let categoryId = setup.category_id || null
-    if (setup.newCategory) {
-      const name = setup.newCategory.trim()
-      const { data: existing } = await supabase
-        .from('categories').select('id').ilike('name', name).maybeSingle()
-      if (existing) {
-        categoryId = existing.id
-      } else {
-        const { data: created, error: catErr } = await supabase
-          .from('categories').insert({ name }).select('id').single()
-        if (catErr) throw catErr
-        categoryId = created.id
-      }
+    // ── Delete game (admin only) ───────────────────────────────────────────
+    if (action === 'delete_game') {
+      if (!await isAdmin()) return json({ error: 'Forbidden' }, 403)
+      await supabase.from('setups').delete().eq('game_id', body.game_id)
+      const { error } = await supabase.from('games').delete().eq('id', body.game_id)
+      if (error) throw error
+      return json({ ok: true })
     }
 
-    const { data: newSetup, error: setupError } = await supabase
-      .from('setups')
-      .insert({
+    // ── Delete setup (owner or admin) ──────────────────────────────────────
+    if (action === 'delete_setup') {
+      const { data: existing } = await supabase.from('setups').select('creator_id').eq('id', body.setup_id).single()
+      if (existing?.creator_id !== user.id && !await isAdmin()) return json({ error: 'Forbidden' }, 403)
+      const { error } = await supabase.from('setups').delete().eq('id', body.setup_id)
+      if (error) throw error
+      return json({ ok: true })
+    }
+
+    // ── Update setup (owner or admin) ──────────────────────────────────────
+    if (action === 'update_setup') {
+      const { setup_id, setup, sections } = body
+      const { data: existing } = await supabase.from('setups').select('creator_id').eq('id', setup_id).single()
+      if (existing?.creator_id !== user.id && !await isAdmin()) return json({ error: 'Forbidden' }, 403)
+
+      const categoryId = await resolveCategory(setup)
+
+      const { error: setupErr } = await supabase.from('setups').update({
         game_id:           setup.game_id,
         car_name:          setup.car_name,
         title:             setup.title,
@@ -230,39 +123,87 @@ serve(async (req) => {
         is_track_specific: setup.is_track_specific ?? false,
         lap_time:          setup.lap_time ?? null,
         track_conditions:  setup.track_conditions ?? null,
-      })
-      .select('id')
-      .single()
+        is_public:         setup.is_public ?? true,
+      }).eq('id', setup_id)
+      if (setupErr) throw setupErr
 
-    if (setupError) throw setupError
+      await supabase.from('setup_sections').delete().eq('setup_id', setup_id)
+      await insertSections(setup_id, sections)
 
-    for (let sIdx = 0; sIdx < sections.length; sIdx++) {
-      const section = sections[sIdx]
-      const { data: newSection, error: sectionError } = await supabase
-        .from('setup_sections')
-        .insert({ setup_id: newSetup.id, name: section.name, sort_order: sIdx })
-        .select('id')
-        .single()
-      if (sectionError) throw sectionError
-
-      const fields = (section.fields ?? []).map(
-        (f: { field_name: string; field_value: string }, fIdx: number) => ({
-          section_id:  newSection.id,
-          field_name:  f.field_name,
-          field_value: f.field_value,
-          sort_order:  fIdx,
-        })
-      )
-      if (fields.length > 0) {
-        const { error: fieldsError } = await supabase.from('setup_fields').insert(fields)
-        if (fieldsError) throw fieldsError
-      }
+      return json({ id: setup_id })
     }
 
-    return new Response(JSON.stringify({ id: newSetup.id }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    // ── Duplicate setup ────────────────────────────────────────────────────
+    if (action === 'duplicate_setup') {
+      const { data: original, error: origErr } = await supabase.from('setups').select('*').eq('id', body.setup_id).single()
+      if (origErr) throw origErr
+
+      const { data: secs, error: secsErr } = await supabase
+        .from('setup_sections').select('*, setup_fields(*)').eq('setup_id', body.setup_id).order('sort_order')
+      if (secsErr) throw secsErr
+
+      const { data: newSetup, error: setupErr } = await supabase.from('setups').insert({
+        game_id:           original.game_id,
+        car_name:          original.car_name,
+        title:             original.title + ' (Copy)',
+        category_id:       original.category_id,
+        control_type:      original.control_type,
+        author_name:       original.author_name,
+        notes:             original.notes,
+        track_name:        null,
+        is_track_specific: original.is_track_specific,
+        lap_time:          original.lap_time,
+        track_conditions:  original.track_conditions,
+        creator_id:        user.id,
+        is_public:         false,
+      }).select('id').single()
+      if (setupErr) throw setupErr
+
+      for (let sIdx = 0; sIdx < (secs || []).length; sIdx++) {
+        const sec = secs[sIdx]
+        const { data: newSec, error: sErr } = await supabase
+          .from('setup_sections').insert({ setup_id: newSetup.id, name: sec.name, sort_order: sIdx }).select('id').single()
+        if (sErr) throw sErr
+
+        const fields = (sec.setup_fields || [])
+          .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
+          .map((f: { field_name: string }, fIdx: number) => ({
+            section_id: newSec.id, field_name: f.field_name, field_value: '', sort_order: fIdx,
+          }))
+        if (fields.length > 0) {
+          const { error: fErr } = await supabase.from('setup_fields').insert(fields)
+          if (fErr) throw fErr
+        }
+      }
+
+      return json({ id: newSetup.id })
+    }
+
+    // ── Create setup (default) ─────────────────────────────────────────────
+    const { setup, sections } = body
+    const categoryId = await resolveCategory(setup)
+
+    const { data: newSetup, error: setupErr } = await supabase.from('setups').insert({
+      game_id:           setup.game_id,
+      car_name:          setup.car_name,
+      title:             setup.title,
+      category_id:       categoryId,
+      control_type:      setup.control_type,
+      author_name:       setup.author_name ?? null,
+      notes:             setup.notes ?? null,
+      track_name:        setup.track_name ?? null,
+      is_track_specific: setup.is_track_specific ?? false,
+      lap_time:          setup.lap_time ?? null,
+      track_conditions:  setup.track_conditions ?? null,
+      creator_id:        user.id,
+      is_public:         setup.is_public ?? true,
+    }).select('id').single()
+    if (setupErr) throw setupErr
+
+    await insertSections(newSetup.id, sections)
+
+    return json({ id: newSetup.id })
+
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,

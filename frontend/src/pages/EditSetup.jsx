@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 import '../styles/SetupForm.css'
 
 const emptyField   = () => ({ id: crypto.randomUUID(), field_name: '', field_value: '' })
@@ -9,15 +10,14 @@ const emptySection = () => ({ id: crypto.randomUUID(), name: '', fields: [emptyF
 export default function EditSetup() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { session } = useAuth()
   const [games, setGames] = useState([])
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState(null)
   const [sections, setSections] = useState([emptySection()])
   const [loading, setLoading] = useState(true)
-  const [showPin, setShowPin] = useState(false)
-  const [pin, setPin] = useState('')
-  const [pinError, setPinError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -46,6 +46,7 @@ export default function EditSetup() {
         is_track_specific: setup.is_track_specific || false,
         lap_time:          setup.lap_time || '',
         track_conditions:  setup.track_conditions || '',
+        is_public:         setup.is_public !== false,
       })
 
       setSections(
@@ -89,53 +90,48 @@ export default function EditSetup() {
     ))
   }
 
-  function handleSubmitClick(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    setShowPin(true)
-  }
-
-  async function handlePinSubmit(e) {
-    e.preventDefault()
-    setPinError('')
+    setSubmitError('')
     setSubmitting(true)
 
-    const payload = {
-      pin,
-      action: 'update_setup',
-      setup_id: id,
-      setup: {
-        game_id:      form.game_id,
-        car_name:     form.car_name.trim(),
-        title:        form.title.trim(),
-        category_id:  form.category_id || null,
-        control_type: form.control_type,
-        author_name:       form.author_name.trim() || null,
-        notes:             form.notes.trim() || null,
-        track_name:        form.is_track_specific ? form.track_name.trim() : (form.track_name.trim() || null),
-        is_track_specific: form.is_track_specific,
-        lap_time:          form.is_track_specific ? (form.lap_time.trim() || null) : null,
-        track_conditions:  form.is_track_specific ? (form.track_conditions.trim() || null) : null,
-        newCategory:       form.newCategory.trim() || null,
-      },
-      sections: sections
-        .filter(sec => sec.name.trim())
-        .map(sec => ({
-          name: sec.name.trim(),
-          fields: sec.fields.filter(f => f.field_name.trim() && f.field_value.trim()),
-        })),
-    }
-
+    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${s.access_token}`,
+      },
+      body: JSON.stringify({
+        action: 'update_setup',
+        setup_id: id,
+        setup: {
+          game_id:           form.game_id,
+          car_name:          form.car_name.trim(),
+          title:             form.title.trim(),
+          category_id:       form.category_id || null,
+          control_type:      form.control_type,
+          author_name:       form.author_name.trim() || null,
+          notes:             form.notes.trim() || null,
+          track_name:        form.is_track_specific ? form.track_name.trim() : (form.track_name.trim() || null),
+          is_track_specific: form.is_track_specific,
+          lap_time:          form.is_track_specific ? (form.lap_time.trim() || null) : null,
+          track_conditions:  form.is_track_specific ? (form.track_conditions.trim() || null) : null,
+          is_public:         form.is_public,
+          newCategory:       form.newCategory.trim() || null,
+        },
+        sections: sections
+          .filter(sec => sec.name.trim())
+          .map(sec => ({
+            name: sec.name.trim(),
+            fields: sec.fields.filter(f => f.field_name.trim() && f.field_value.trim()),
+          })),
+      }),
     })
 
     setSubmitting(false)
-
-    if (res.status === 401) { setPinError('Incorrect PIN — try again'); return }
-    if (!res.ok) { setPinError('Something went wrong. Please try again.'); return }
-
+    if (!res.ok) { setSubmitError('Something went wrong. Please try again.'); return }
     navigate(`/setup/${id}`)
   }
 
@@ -151,7 +147,7 @@ export default function EditSetup() {
   return (
     <div className="setup-form-page">
       <h1>Edit Setup</h1>
-      <form className="setup-form" onSubmit={handleSubmitClick}>
+      <form className="setup-form" onSubmit={handleSubmit}>
 
         <div className="form-card">
           <div className="form-row">
@@ -307,6 +303,31 @@ export default function EditSetup() {
               value={form.notes} onChange={e => setFormField('notes', e.target.value)}
             />
           </div>
+
+          <div className="form-group">
+            <label>Visibility</label>
+            <div className="control-type-toggle">
+              <button
+                type="button"
+                className={`control-type-btn${form.is_public ? ' active' : ''}`}
+                onClick={() => setFormField('is_public', true)}
+              >
+                <i className="fa-solid fa-globe" /> Public
+              </button>
+              <button
+                type="button"
+                className={`control-type-btn${!form.is_public ? ' active' : ''}`}
+                onClick={() => setFormField('is_public', false)}
+              >
+                <i className="fa-solid fa-lock" /> Private Draft
+              </button>
+            </div>
+            {!form.is_public && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+                Only you can see private setups.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="form-card">
@@ -360,39 +381,12 @@ export default function EditSetup() {
 
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={() => navigate(`/setup/${id}`)}>Cancel</button>
-          <button type="submit" className="btn btn-primary">
-            <i className="fa-solid fa-floppy-disk" /> Update Setup
+          {submitError && <p className="pin-error">{submitError}</p>}
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <i className="fa-solid fa-floppy-disk" /> {submitting ? 'Saving…' : 'Update Setup'}
           </button>
         </div>
       </form>
-
-      {showPin && (
-        <div className="pin-modal-overlay" onClick={() => { setShowPin(false); setPin(''); setPinError('') }}>
-          <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handlePinSubmit}>
-            <h3><i className="fa-solid fa-lock" /> Enter PIN</h3>
-            <p>Enter the group PIN to save your changes.</p>
-            <input
-              className="pin-input"
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="······"
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              autoFocus
-            />
-            {pinError && <p className="pin-error">{pinError}</p>}
-            <div className="pin-modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => { setShowPin(false); setPin(''); setPinError('') }}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={submitting || pin.length < 4}>
-                {submitting ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   )
 }

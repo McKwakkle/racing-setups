@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import CategoryBadge from './CategoryBadge'
+import { useAuth } from '../contexts/AuthContext'
 import '../styles/SetupCard.css'
 import '../styles/RatingButtons.css'
 
 export default function SetupCard({ setup, topAuthors = {} }) {
+  const { session } = useAuth()
   const date = new Date(setup.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
   const ups = (setup.ratings || []).filter(r => r.value === 1).length
   const isTopAuthor = setup.author_name &&
@@ -13,7 +15,12 @@ export default function SetupCard({ setup, topAuthors = {} }) {
     <Link to={`/setup/${setup.id}`} className="setup-card">
       <div className="setup-card-header">
         <div>
-          <div className="setup-card-title">{setup.title}</div>
+          <div className="setup-card-title">
+            {!setup.is_public && (
+              <span className="card-private-badge"><i className="fa-solid fa-lock" /> Private</span>
+            )}
+            {setup.title}
+          </div>
           <div className="setup-card-car">
             <i className="fa-solid fa-car" /> {setup.car_name}
           </div>
