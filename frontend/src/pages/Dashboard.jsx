@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import SetupCard from '../components/SetupCard'
 import '../styles/Dashboard.css'
@@ -98,14 +98,9 @@ export default function Dashboard() {
 
   async function deleteSetup(setupId) {
     if (!confirm('Delete this setup? This cannot be undone.')) return
-    const { data: { session: s } } = await supabase.auth.getSession()
     await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${s.access_token}`,
-      },
+      headers: await authHeaders(),
       body: JSON.stringify({ action: 'delete_setup', setup_id: setupId }),
     })
     setMySetups(prev => prev.filter(s => s.id !== setupId))

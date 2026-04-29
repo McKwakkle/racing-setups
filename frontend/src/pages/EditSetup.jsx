@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/SetupForm.css'
 
@@ -95,14 +95,9 @@ export default function EditSetup() {
     setSubmitError('')
     setSubmitting(true)
 
-    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${s.access_token}`,
-      },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: 'update_setup',
         setup_id: id,

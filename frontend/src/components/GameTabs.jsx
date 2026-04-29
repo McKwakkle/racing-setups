@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/GameTabs.css'
 
@@ -38,20 +38,12 @@ export default function GameTabs() {
     })
   }
 
-  async function authHeaders() {
-    const { data: { session: s } } = await supabase.auth.getSession()
-    return {
-      'Content-Type': 'application/json',
-      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${s.access_token}`,
-    }
-  }
-
   async function handleAddGame(e) {
     e.preventDefault()
     setError('')
     if (!newGameName.trim()) return
     const slug = newGameName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    if (!slug) { setError('Game name must contain at least one letter or number'); return }
     setSubmitting(true)
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',

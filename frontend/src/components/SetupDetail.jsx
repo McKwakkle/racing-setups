@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import CategoryBadge from './CategoryBadge'
 import RatingButtons from './RatingButtons'
@@ -23,13 +23,11 @@ export default function SetupDetail() {
   const [bookmarking, setBookmarking] = useState(false)
   const [topAuthor, setTopAuthor] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deletePin, setDeletePin] = useState('')
-  const [deletePinError, setDeletePinError] = useState('')
+  const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
 
   const [showDupModal, setShowDupModal] = useState(false)
-  const [dupPin, setDupPin] = useState('')
-  const [dupPinError, setDupPinError] = useState('')
+  const [dupError, setDupError] = useState('')
   const [duplicating, setDuplicating] = useState(false)
 
   useEffect(() => {
@@ -132,38 +130,36 @@ export default function SetupDetail() {
 
   async function handleDelete(e) {
     e.preventDefault()
-    setDeletePinError('')
+    setDeleteError('')
     setDeleting(true)
 
-    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${s.access_token}` },
+      headers: await authHeaders(),
       body: JSON.stringify({ action: 'delete_setup', setup_id: id }),
     })
 
     setDeleting(false)
-    if (res.status === 401) { setDeletePinError('Incorrect PIN'); return }
-    if (!res.ok) { setDeletePinError('Something went wrong'); return }
+    if (res.status === 401) { setDeleteError('Not authorised'); return }
+    if (!res.ok) { setDeleteError('Something went wrong'); return }
 
     navigate('/')
   }
 
   async function handleDuplicate(e) {
     e.preventDefault()
-    setDupPinError('')
+    setDupError('')
     setDuplicating(true)
 
-    const { data: { session: s } } = await supabase.auth.getSession()
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${s.access_token}` },
+      headers: await authHeaders(),
       body: JSON.stringify({ action: 'duplicate_setup', setup_id: id }),
     })
 
     setDuplicating(false)
-    if (res.status === 401) { setDupPinError('Incorrect PIN'); return }
-    if (!res.ok) { setDupPinError('Something went wrong'); return }
+    if (res.status === 401) { setDupError('Not authorised'); return }
+    if (!res.ok) { setDupError('Something went wrong'); return }
 
     const { id: newId } = await res.json()
     navigate(`/edit/${newId}`)
@@ -247,7 +243,7 @@ export default function SetupDetail() {
             </button>
           )}
           {session && (
-            <button className="btn btn-secondary" onClick={() => { setDupPinError(''); setShowDupModal(true) }}>
+            <button className="btn btn-secondary" onClick={() => { setDupError(''); setShowDupModal(true) }}>
               <i className="fa-solid fa-copy" /> Duplicate
             </button>
           )}
@@ -257,7 +253,7 @@ export default function SetupDetail() {
             </button>
           )}
           {session && (setup.creator_id === session.user.id || isAdmin) && (
-            <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeletePin(''); setDeletePinError(''); setShowDeleteModal(true) }}>
+            <button className="btn btn-secondary setup-delete-btn" onClick={() => { setDeleteError(''); setShowDeleteModal(true) }}>
               <i className="fa-solid fa-trash" /> Delete
             </button>
           )}
@@ -308,7 +304,7 @@ export default function SetupDetail() {
               Creates a copy of <strong>{setup.title}</strong> with the same sections and field names,
               but all values left blank. Opens in edit mode as a private draft.
             </p>
-            {dupPinError && <p className="pin-error">{dupPinError}</p>}
+            {dupError && <p className="pin-error">{dupError}</p>}
             <div className="pin-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowDupModal(false)}>
                 Cancel
@@ -326,7 +322,7 @@ export default function SetupDetail() {
           <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handleDelete}>
             <h3><i className="fa-solid fa-triangle-exclamation" /> Delete Setup</h3>
             <p>This will permanently delete <strong>{setup.title}</strong>. This cannot be undone.</p>
-            {deletePinError && <p className="pin-error">{deletePinError}</p>}
+            {deleteError && <p className="pin-error">{deleteError}</p>}
             <div className="pin-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
                 Cancel

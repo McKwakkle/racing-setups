@@ -10,6 +10,7 @@ export default function SetupGrid() {
   const [setups, setSetups] = useState([])
   const [topAuthors, setTopAuthors] = useState({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
   const [searchParams] = useSearchParams()
 
@@ -34,6 +35,7 @@ export default function SetupGrid() {
   useEffect(() => {
     async function fetchSetups() {
       setLoading(true)
+      setError(false)
 
       let query = supabase
         .from('setups')
@@ -50,7 +52,8 @@ export default function SetupGrid() {
         if (authorSearch) query = query.ilike('author_name', `%${authorSearch}%`)
       }
 
-      const { data } = await query
+      const { data, error: fetchError } = await query
+      if (fetchError) { setError(true); setLoading(false); return }
       let results = data || []
 
       if (!isHomeView) {
@@ -81,6 +84,16 @@ export default function SetupGrid() {
       <div className="empty-state">
         <i className="fa-solid fa-spinner fa-spin" />
         <p>Loading setups…</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="empty-state">
+        <i className="fa-solid fa-triangle-exclamation" />
+        <p>Could not load setups.</p>
+        <p className="text-small">Check your connection and refresh the page.</p>
       </div>
     )
   }
