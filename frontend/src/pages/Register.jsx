@@ -8,7 +8,7 @@ function getStrength(password) {
     length:    password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     number:    /[0-9]/.test(password),
-    special:   /[^A-Za-z0-9]/.test(password),
+    special:   /[^A-Za-z0-9\s]/.test(password),
   }
 }
 
@@ -38,8 +38,12 @@ export default function Register() {
     setError('')
 
     if (!username.trim()) { setError('Username is required'); return }
-    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-      setError('Username must be 3–20 characters: lowercase letters, numbers, and underscores only')
+    if (username.length < 3 || username.length > 30) {
+      setError('Username must be between 3 and 30 characters')
+      return
+    }
+    if (/\s/.test(username)) {
+      setError('Username cannot contain spaces')
       return
     }
     if (score < 4) { setError('Password does not meet all requirements'); return }
@@ -49,7 +53,7 @@ export default function Register() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username: username.trim().toLowerCase() } },
+      options: { data: { username: username.trim() } },
     })
     setLoading(false)
 
@@ -106,8 +110,8 @@ export default function Register() {
             <label>Username</label>
             <input
               type="text" value={username}
-              onChange={e => setUsername(e.target.value.toLowerCase())}
-              placeholder="e.g. speedking99"
+              onChange={e => setUsername(e.target.value.replace(/\s/g, ''))}
+              placeholder="e.g. SpeedKing_99"
               required autoFocus autoComplete="username"
             />
           </div>
@@ -123,7 +127,7 @@ export default function Register() {
             <label>Password</label>
             <input
               type="password" value={password}
-              onChange={e => { setPassword(e.target.value); setShowStrength(true) }}
+              onChange={e => { setPassword(e.target.value.replace(/\s/g, '')); setShowStrength(true) }}
               required autoComplete="new-password"
             />
             {showStrength && (
@@ -153,7 +157,7 @@ export default function Register() {
             <label>Confirm Password</label>
             <input
               type="password" value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={e => setConfirm(e.target.value.replace(/\s/g, ''))}
               required autoComplete="new-password"
             />
           </div>

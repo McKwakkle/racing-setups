@@ -8,7 +8,7 @@ function getStrength(password) {
     length:    password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     number:    /[0-9]/.test(password),
-    special:   /[^A-Za-z0-9]/.test(password),
+    special:   /[^A-Za-z0-9\s]/.test(password),
   }
 }
 
@@ -72,7 +72,7 @@ export default function ResetPassword() {
             <label>New Password</label>
             <input
               type="password" value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value.replace(/\s/g, ''))}
               required autoFocus autoComplete="new-password"
             />
             {password && (
@@ -101,7 +101,7 @@ export default function ResetPassword() {
             <label>Confirm New Password</label>
             <input
               type="password" value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={e => setConfirm(e.target.value.replace(/\s/g, ''))}
               required autoComplete="new-password"
             />
           </div>

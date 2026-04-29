@@ -115,8 +115,12 @@ export default function Dashboard() {
     e.preventDefault()
     setUsernameErr('')
     setUsernameMsg('')
-    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-      setUsernameErr('3–20 chars: lowercase letters, numbers, and underscores only')
+    if (username.length < 3 || username.length > 30) {
+      setUsernameErr('Username must be between 3 and 30 characters')
+      return
+    }
+    if (/\s/.test(username)) {
+      setUsernameErr('Username cannot contain spaces')
       return
     }
     setSavingUsername(true)
@@ -267,7 +271,7 @@ export default function Dashboard() {
                 <div className="form-group">
                   <input
                     type="text" value={username}
-                    onChange={e => setUsername(e.target.value.toLowerCase())}
+                    onChange={e => setUsername(e.target.value.replace(/\s/g, ''))}
                     placeholder="username"
                   />
                 </div>
