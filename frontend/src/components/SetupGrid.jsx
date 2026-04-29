@@ -42,7 +42,7 @@ export default function SetupGrid() {
 
       if (isHomeView) {
         // Home: just the 5 most recent
-        query = query.limit(5)
+        query = query.limit(6)
       } else {
         if (gameSlug)     query = query.eq('games.slug', gameSlug)
         if (carSearch)    query = query.ilike('car_name', `%${carSearch}%`)
@@ -102,7 +102,7 @@ export default function SetupGrid() {
     <>
       <p className="setup-grid-results">
         {isHomeView
-          ? 'Most recent setups'
+          ? '6 most recent setups'
           : `${setups.length} setup${setups.length !== 1 ? 's' : ''} found${gameSlug ? ' — sorted by top rated' : ''}`}
       </p>
       <div className="setup-grid">
