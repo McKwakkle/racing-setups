@@ -3,11 +3,11 @@ import CategoryBadge from './CategoryBadge'
 import '../styles/SetupCard.css'
 import '../styles/RatingButtons.css'
 
-export default function SetupCard({ setup }) {
+export default function SetupCard({ setup, topAuthors = {} }) {
   const date = new Date(setup.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-  const ratings = setup.ratings || []
-  const ups   = ratings.filter(r => r.value === 1).length
-  const downs = ratings.filter(r => r.value === -1).length
+  const ups = (setup.ratings || []).filter(r => r.value === 1).length
+  const isTopAuthor = setup.author_name &&
+    topAuthors[setup.game_id]?.toLowerCase() === setup.author_name.toLowerCase()
 
   return (
     <Link to={`/setup/${setup.id}`} className="setup-card">
@@ -35,17 +35,17 @@ export default function SetupCard({ setup }) {
       </div>
 
       <div className="setup-card-footer">
-        <span>{setup.author_name ? `By ${setup.author_name}` : 'Anonymous'}</span>
-        <div className="card-rating">
-          {(ups > 0 || downs > 0) ? (
-            <>
-              <span className="card-rating-up"><i className="fa-solid fa-thumbs-up" /> {ups}</span>
-              <span className="card-rating-down"><i className="fa-solid fa-thumbs-down" /> {downs}</span>
-            </>
-          ) : (
-            <span style={{ color: 'var(--color-border)' }}>No ratings</span>
-          )}
-        </div>
+        <span>
+          {isTopAuthor && <i className="fa-solid fa-star top-author-star" title="Top rated creator for this game" />}
+          {setup.author_name ? `By ${setup.author_name}` : 'Anonymous'}
+        </span>
+        {ups > 0 ? (
+          <span className="card-rating">
+            <i className="fa-solid fa-thumbs-up" /> {ups}
+          </span>
+        ) : (
+          <span style={{ color: 'var(--color-border)', fontSize: '0.78rem' }}>No ratings</span>
+        )}
         <span>{date}</span>
       </div>
     </Link>

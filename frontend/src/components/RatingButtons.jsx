@@ -18,7 +18,6 @@ function loadStored(setupId) {
 
 export default function RatingButtons({ setupId }) {
   const [ups, setUps] = useState(0)
-  const [downs, setDowns] = useState(0)
   const [myVote, setMyVote] = useState(null)
   const [myRowId, setMyRowId] = useState(null)
   const [voting, setVoting] = useState(false)
@@ -30,80 +29,56 @@ export default function RatingButtons({ setupId }) {
       setMyRowId(stored.rowId)
     }
 
-    supabase.from('ratings').select('value').eq('setup_id', setupId).then(({ data }) => {
-      const list = data || []
-      setUps(list.filter(r => r.value === 1).length)
-      setDowns(list.filter(r => r.value === -1).length)
+    supabase.from('ratings').select('value').eq('setup_id', setupId).eq('value', 1).then(({ data }) => {
+      setUps((data || []).length)
     })
   }, [setupId])
 
-  async function vote(value) {
+  async function vote() {
     if (voting) return
     setVoting(true)
 
-    // Same button clicked again — remove vote
-    if (myVote === value) {
+    if (myVote !== null) {
+      // Already voted — remove it
       await supabase.from('ratings').delete().eq('id', myRowId)
       localStorage.removeItem(`rating_${setupId}`)
       setMyVote(null)
       setMyRowId(null)
-      if (value === 1) setUps(u => u - 1)
-      else setDowns(d => d - 1)
-      setVoting(false)
-      return
-    }
+      setUps(u => u - 1)
+    } else {
+      // Cast upvote
+      const { data, error } = await supabase
+        .from('ratings')
+        .insert({ setup_id: setupId, value: 1 })
+        .select('id')
+        .single()
 
-    // Switching from an existing vote — delete the old row first
-    if (myVote !== null) {
-      await supabase.from('ratings').delete().eq('id', myRowId)
-      if (myVote === 1) setUps(u => u - 1)
-      else setDowns(d => d - 1)
-    }
-
-    // Insert new vote
-    const { data, error } = await supabase
-      .from('ratings')
-      .insert({ setup_id: setupId, value })
-      .select('id')
-      .single()
-
-    if (!error && data) {
-      localStorage.setItem(`rating_${setupId}`, JSON.stringify({ value, rowId: data.id }))
-      setMyVote(value)
-      setMyRowId(data.id)
-      if (value === 1) setUps(u => u + 1)
-      else setDowns(d => d + 1)
+      if (!error && data) {
+        localStorage.setItem(`rating_${setupId}`, JSON.stringify({ value: 1, rowId: data.id }))
+        setMyVote(1)
+        setMyRowId(data.id)
+        setUps(u => u + 1)
+      }
     }
 
     setVoting(false)
   }
-
-  const total = ups + downs
 
   return (
     <div className="rating-block">
       <span className="rating-label">Rate this setup</span>
       <div className="rating-buttons">
         <button
-          className={`rating-btn rating-btn-up${myVote === 1 ? ' active' : ''}`}
-          onClick={() => vote(1)}
+          className={`rating-btn rating-btn-up${myVote !== null ? ' active' : ''}`}
+          onClick={vote}
           disabled={voting}
-          title="Good setup"
+          title={myVote !== null ? 'Remove your upvote' : 'Upvote this setup'}
         >
           <i className="fa-solid fa-thumbs-up" />
           <span>{ups}</span>
         </button>
-        <button
-          className={`rating-btn rating-btn-down${myVote === -1 ? ' active' : ''}`}
-          onClick={() => vote(-1)}
-          disabled={voting}
-          title="Needs work"
-        >
-          <i className="fa-solid fa-thumbs-down" />
-          <span>{downs}</span>
-        </button>
-        {total > 0 && (
-          <span className="rating-count">{total} rating{total !== 1 ? 's' : ''}</span>
+        {ups > 0 && (
+          <span className="rating-count">{ups} upvote{ups !== 1 ? 's' : ''}</span>
         )}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import CategoryBadge from './CategoryBadge'
 import RatingButtons from './RatingButtons'
 import '../styles/SetupDetail.css'
+import '../styles/RatingButtons.css'
 
 export default function SetupDetail() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export default function SetupDetail() {
   const [copied, setCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
 
+  const [topAuthor, setTopAuthor] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletePin, setDeletePin] = useState('')
   const [deletePinError, setDeletePinError] = useState('')
@@ -59,6 +61,13 @@ export default function SetupDetail() {
           setup_fields: (sec.setup_fields || []).sort((a, b) => a.sort_order - b.sort_order),
         }))
       )
+
+      const { data: topData } = await supabase
+        .from('game_top_authors')
+        .select('author_name')
+        .eq('game_id', s.game_id)
+        .maybeSingle()
+      setTopAuthor(topData?.author_name || null)
 
       setLoading(false)
     }
@@ -178,7 +187,14 @@ export default function SetupDetail() {
               {' '}{setup.control_type === 'wheel' ? 'Steering Wheel' : 'Remote / Controller'}
             </span>
             {setup.track_name && <span><i className="fa-solid fa-map-location-dot" /> {setup.track_name}</span>}
-            {setup.author_name && <span>By {setup.author_name}</span>}
+            {setup.author_name && (
+              <span>
+                {topAuthor?.toLowerCase() === setup.author_name.toLowerCase() && (
+                  <i className="fa-solid fa-star top-author-star" title="Top rated creator for this game" />
+                )}
+                By {setup.author_name}
+              </span>
+            )}
             <span>{date}</span>
           </div>
         </div>

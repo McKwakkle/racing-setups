@@ -38,31 +38,18 @@
   transition: all var(--transition);
 }
 
-.rating-btn:not(:disabled):hover {
-  border-color: currentColor;
+.rating-btn-up:not(:disabled):hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
-
-.rating-btn-up:not(:disabled):hover  { color: var(--color-success); }
-.rating-btn-down:not(:disabled):hover { color: var(--color-error); }
 
 .rating-btn-up.active {
-  background: rgba(74, 222, 128, 0.12);
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
-.rating-btn-down.active {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: var(--color-error);
-  color: var(--color-error);
+  background: rgba(168, 85, 247, 0.12);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .rating-btn:disabled { cursor: default; }
-
-.rating-thanks {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  font-style: italic;
-}
 
 .rating-count {
   font-size: 0.8rem;
@@ -73,9 +60,14 @@
 .card-rating {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   font-size: 0.78rem;
+  color: var(--color-primary);
 }
 
-.card-rating-up   { color: var(--color-success); }
-.card-rating-down { color: var(--color-error); }
+/* Top author star */
+.top-author-star {
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  margin-right: 3px;
+}

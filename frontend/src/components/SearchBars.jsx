@@ -42,6 +42,15 @@ export default function SearchBars() {
           onChange={e => update('track', e.target.value)}
         />
       </div>
+      <div className="search-bar-wrap">
+        <i className="fa-solid fa-user" />
+        <input
+          type="text"
+          placeholder="Search by creator…"
+          value={searchParams.get('author') || ''}
+          onChange={e => update('author', e.target.value)}
+        />
+      </div>
     </div>
   )
 }
