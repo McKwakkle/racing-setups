@@ -217,6 +217,15 @@
   flex-wrap: wrap;
 }
 
+.csv-import-locked {
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 .csv-success {
   width: 100%;
   font-size: 0.85rem;

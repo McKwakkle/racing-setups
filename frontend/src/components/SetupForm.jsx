@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import '../styles/SetupForm.css'
 
@@ -26,6 +26,37 @@ const CSV_TEMPLATE = [
   'FIELD,Right Rear Pressure,14',
 ].join('\n')
 
+const AI_PROMPT = `You are helping me format a racing game car setup as a CSV file for a setup tracker website.
+
+Use EXACTLY this format — do not add extra columns, headers, or explanation, just the raw CSV:
+
+Type,Name,Value
+META,Game,[full game name]
+META,Car,[car name]
+META,Title,[a descriptive setup title]
+META,Category,[e.g. Dirt Oval, Street, Drift, Rally, Grip, Drag]
+META,Control,[wheel OR remote]
+META,Author,[gamertag — optional, leave blank if not needed]
+META,Notes,[any notes about conditions or usage — optional]
+META,Track,[specific track name — optional]
+SECTION,[Section Name],
+FIELD,[Setting Name],[Value]
+FIELD,[Setting Name],[Value]
+SECTION,[Another Section],
+FIELD,[Setting Name],[Value]
+
+Rules:
+- META rows define the setup details
+- SECTION rows start a new group of settings — leave the Value column blank
+- FIELD rows are always placed under the SECTION above them
+- Control must be exactly "wheel" or "remote"
+- Values can include units (e.g. 800 lbs/in, -2.5°, 12.5 psi)
+- If a value contains a comma, wrap it in double quotes
+- Include every setting the game exposes, grouped logically by section
+
+Now generate the CSV for this setup:
+[DESCRIBE YOUR SETUP HERE — include the game, car, track, and all the setting names and values]`
+
 function parseCSVRow(row) {
   const result = []
   let current = ''
@@ -47,7 +78,10 @@ function parseCSVRow(row) {
 
 export default function SetupForm() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedSlug = searchParams.get('game') || ''
   const fileInputRef = useRef(null)
+
   const [games, setGames] = useState([])
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState({
@@ -61,11 +95,21 @@ export default function SetupForm() {
   const [submitting, setSubmitting] = useState(false)
   const [csvMessage, setCsvMessage] = useState('')
   const [csvError, setCsvError] = useState('')
+  const [promptCopied, setPromptCopied] = useState(false)
 
   useEffect(() => {
-    supabase.from('games').select('*').order('name').then(({ data }) => data && setGames(data))
+    supabase.from('games').select('*').order('name').then(({ data }) => {
+      if (!data) return
+      setGames(data)
+      if (preselectedSlug) {
+        const match = data.find(g => g.slug === preselectedSlug)
+        if (match) setForm(f => ({ ...f, game_id: match.id }))
+      }
+    })
     supabase.from('categories').select('*').order('name').then(({ data }) => data && setCategories(data))
-  }, [])
+  }, [preselectedSlug])
+
+  const selectedGame = games.find(g => g.id === form.game_id) || null
 
   function setFormField(key, val) { setForm(f => ({ ...f, [key]: val })) }
 
@@ -74,7 +118,6 @@ export default function SetupForm() {
   function updateSectionName(sid, name) {
     setSections(s => s.map(sec => sec.id === sid ? { ...sec, name } : sec))
   }
-
   function addField(sid) {
     setSections(s => s.map(sec => sec.id === sid ? { ...sec, fields: [...sec.fields, emptyField()] } : sec))
   }
@@ -101,6 +144,12 @@ export default function SetupForm() {
     URL.revokeObjectURL(url)
   }
 
+  function copyPrompt() {
+    navigator.clipboard.writeText(AI_PROMPT)
+    setPromptCopied(true)
+    setTimeout(() => setPromptCopied(false), 2500)
+  }
+
   function handleCSVUpload(e) {
     const file = e.target.files[0]
     if (!file) return
@@ -110,11 +159,8 @@ export default function SetupForm() {
 
     const reader = new FileReader()
     reader.onload = evt => {
-      try {
-        importCSV(evt.target.result)
-      } catch (err) {
-        setCsvError('Could not parse file — make sure it matches the template format.')
-      }
+      try { importCSV(evt.target.result) }
+      catch { setCsvError('Could not parse file — make sure it matches the template format.') }
     }
     reader.readAsText(file)
   }
@@ -124,17 +170,14 @@ export default function SetupForm() {
     if (lines.length < 2) throw new Error('Empty file')
 
     const rows = lines.slice(1).map(parseCSVRow)
-    const newForm = {
-      game_id: '', car_name: '', title: '', category_id: '',
-      newCategory: '', control_type: 'wheel', author_name: '', notes: '', track_name: '',
-    }
+    const newForm = { ...form }
     const newSections = []
     let currentSection = null
     let sectionCount = 0
 
     for (const cols of rows) {
-      const type = (cols[0] || '').toUpperCase()
-      const name = (cols[1] || '').trim()
+      const type  = (cols[0] || '').toUpperCase()
+      const name  = (cols[1] || '').trim()
       const value = (cols[2] || '').trim()
 
       if (type === 'META') {
@@ -144,11 +187,11 @@ export default function SetupForm() {
             if (match) newForm.game_id = match.id
             break
           }
-          case 'car':      newForm.car_name     = value; break
-          case 'title':    newForm.title        = value; break
-          case 'author':   newForm.author_name  = value; break
-          case 'notes':    newForm.notes        = value; break
-          case 'track':    newForm.track_name   = value; break
+          case 'car':    newForm.car_name    = value; break
+          case 'title':  newForm.title       = value; break
+          case 'author': newForm.author_name = value; break
+          case 'notes':  newForm.notes       = value; break
+          case 'track':  newForm.track_name  = value; break
           case 'control':
             newForm.control_type = value.toLowerCase().includes('wheel') ? 'wheel' : 'remote'
             break
@@ -213,7 +256,6 @@ export default function SetupForm() {
     })
 
     setSubmitting(false)
-
     if (res.status === 401) { setPinError('Incorrect PIN — try again'); return }
     if (!res.ok) { setPinError('Something went wrong. Please try again.'); return }
 
@@ -226,33 +268,48 @@ export default function SetupForm() {
       <h1>New Setup</h1>
       <form className="setup-form" onSubmit={handleSubmitClick}>
 
-        {/* CSV Import */}
-        <div className="csv-import-card">
-          <div className="csv-import-info">
-            <i className="fa-solid fa-file-csv csv-import-icon" />
-            <div>
-              <strong>Import from CSV</strong>
-              <p>Download the template, fill it in, then upload to auto-fill the form.</p>
+        {/* CSV Import — only shown once a game is selected */}
+        {form.game_id ? (
+          <div className="csv-import-card">
+            <div className="csv-import-info">
+              <i className="fa-solid fa-file-csv csv-import-icon" />
+              <div>
+                <strong>Import from CSV{selectedGame ? ` — ${selectedGame.name}` : ''}</strong>
+                <p>
+                  Use the AI prompt to generate a CSV with your AI of choice, then upload it to auto-fill
+                  the form below. You can edit any field before saving.
+                </p>
+              </div>
             </div>
+            <div className="csv-import-actions">
+              <button type="button" className="btn btn-secondary" onClick={copyPrompt}>
+                {promptCopied
+                  ? <><i className="fa-solid fa-check" /> Prompt Copied!</>
+                  : <><i className="fa-solid fa-robot" /> Copy AI Prompt</>}
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={downloadTemplate}>
+                <i className="fa-solid fa-download" /> Download Template
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
+                <i className="fa-solid fa-file-arrow-up" /> Upload CSV
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                style={{ display: 'none' }}
+                onChange={handleCSVUpload}
+              />
+            </div>
+            {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
+            {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
           </div>
-          <div className="csv-import-actions">
-            <button type="button" className="btn btn-secondary" onClick={downloadTemplate}>
-              <i className="fa-solid fa-download" /> Download Template
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
-              <i className="fa-solid fa-file-arrow-up" /> Upload CSV
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              style={{ display: 'none' }}
-              onChange={handleCSVUpload}
-            />
+        ) : (
+          <div className="csv-import-card csv-import-locked">
+            <i className="fa-solid fa-file-csv csv-import-icon" />
+            <p>Select a game below to unlock CSV import.</p>
           </div>
-          {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
-          {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
-        </div>
+        )}
 
         {/* Basic info */}
         <div className="form-card">
@@ -366,7 +423,6 @@ export default function SetupForm() {
                   <i className="fa-solid fa-trash" />
                 </button>
               </div>
-
               <div className="section-fields">
                 {sec.fields.map(f => (
                   <div key={f.id} className="field-row">
@@ -401,7 +457,6 @@ export default function SetupForm() {
         </div>
       </form>
 
-      {/* PIN Modal */}
       {showPin && (
         <div className="pin-modal-overlay" onClick={() => { setShowPin(false); setPin(''); setPinError('') }}>
           <form className="pin-modal" onClick={e => e.stopPropagation()} onSubmit={handlePinSubmit}>
