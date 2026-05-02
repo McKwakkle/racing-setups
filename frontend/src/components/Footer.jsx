@@ -1,7 +1,21 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import '../styles/Footer.css'
 
+function getInitialTheme() {
+  return localStorage.getItem('theme') || 'dark'
+}
+
 export default function Footer() {
+  const [theme, setTheme] = useState(getInitialTheme)
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('theme', next)
+  }
+
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -10,6 +24,14 @@ export default function Footer() {
           <Link to="/how-to" className="footer-howto">
             <i className="fa-solid fa-circle-question" /> How to Use
           </Link>
+          <div className="footer-divider" />
+          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <i className="fa-solid fa-moon" />
+            <span className="theme-toggle-track">
+              <span className="theme-toggle-thumb" />
+            </span>
+            <i className="fa-solid fa-sun" />
+          </button>
           <div className="footer-divider" />
           <div className="footer-links">
             <a href="mailto:kellanmcn@gmail.com" className="footer-link" title="Email">

@@ -27,3 +27,15 @@
 
   --max-width: 1200px;
 }
+
+[data-theme="light"] {
+  --color-bg:           #f0eef8;
+  --color-bg-raised:    #ffffff;
+  --color-surface:      #e8e5f4;
+  --color-border:       #c9c5e0;
+  --color-primary:      #9333ea;
+  --color-primary-light:#a855f7;
+  --color-primary-dark: #7e22ce;
+  --color-text:         #1a1829;
+  --color-text-muted:   #5f5c78;
+}
