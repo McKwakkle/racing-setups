@@ -115,6 +115,78 @@ export default function SetupDetail() {
     setTimeout(() => setLinkCopied(false), 2000)
   }
 
+  function downloadJSON() {
+    if (!setup || !sections.length) return
+
+    const isACC = setup.games?.name?.toLowerCase().includes('competizione')
+
+    function wordsToCamel(str) {
+      return str
+        .replace(/(?:^\w|[A-Z]|\b\w)/g, (w, i) => i === 0 ? w.toLowerCase() : w.toUpperCase())
+        .replace(/\s+/g, '')
+    }
+
+    function parseVal(str) {
+      if (str.includes(',')) {
+        const parts = str.split(',').map(s => s.trim())
+        const nums = parts.map(Number)
+        if (nums.every(n => !isNaN(n))) return nums
+      }
+      const num = Number(str)
+      if (!isNaN(num) && str.trim() !== '') return num
+      try { return JSON.parse(str) } catch {}
+      return str
+    }
+
+    const ACC_MAP = {
+      'tyres':              ['basicSetup',    'tyres'],
+      'alignment':          ['basicSetup',    'alignment'],
+      'electronics':        ['basicSetup',    'electronics'],
+      'strategy':           ['basicSetup',    'strategy'],
+      'mechanical balance': ['advancedSetup', 'mechanicalBalance'],
+      'dampers':            ['advancedSetup', 'dampers'],
+      'aero balance':       ['advancedSetup', 'aeroBalance'],
+      'drivetrain':         ['advancedSetup', 'drivetrain'],
+    }
+
+    let data, filename
+
+    if (isACC) {
+      data = {
+        carName: setup.car_name,
+        basicSetup:   { tyres: {}, alignment: {}, electronics: {}, strategy: {} },
+        advancedSetup: { mechanicalBalance: {}, dampers: {}, aeroBalance: {}, drivetrain: {} },
+        trackBopType: 0,
+      }
+      for (const sec of sections) {
+        const path = ACC_MAP[sec.name.toLowerCase()]
+        if (!path) continue
+        const target = data[path[0]][path[1]]
+        for (const f of sec.setup_fields) target[wordsToCamel(f.field_name)] = parseVal(f.field_value)
+      }
+      filename = `${setup.car_name}.json`
+    } else {
+      data = {
+        title: setup.title,
+        car:   setup.car_name,
+        game:  setup.games?.name,
+        category: setup.categories?.name || null,
+        sections: Object.fromEntries(
+          sections.map(sec => [sec.name, Object.fromEntries(sec.setup_fields.map(f => [f.field_name, f.field_value]))])
+        ),
+      }
+      filename = `${setup.car_name}-${setup.title}.json`.replace(/[^a-z0-9\-_.]/gi, '_')
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, '\t')], { type: 'application/json' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function toggleBookmark() {
     if (!session) return
     setBookmarking(true)
@@ -240,6 +312,11 @@ export default function SetupDetail() {
             <button className={`btn btn-secondary${bookmarked ? ' setup-bookmarked-btn' : ''}`} onClick={toggleBookmark} disabled={bookmarking}>
               <i className={`fa-${bookmarked ? 'solid' : 'regular'} fa-bookmark`} />
               {bookmarked ? 'Bookmarked' : 'Bookmark'}
+            </button>
+          )}
+          {session && (
+            <button className="btn btn-secondary" onClick={downloadJSON}>
+              <i className="fa-solid fa-file-arrow-down" /> Download JSON
             </button>
           )}
           {session && (

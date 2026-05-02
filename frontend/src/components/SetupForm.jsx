@@ -85,7 +85,8 @@ export default function SetupForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedSlug = searchParams.get('game') || ''
-  const fileInputRef = useRef(null)
+  const fileInputRef  = useRef(null)
+  const jsonInputRef  = useRef(null)
 
   const {
     form, setForm, setFormField,
@@ -146,6 +147,74 @@ export default function SetupForm() {
       finally { setCsvLoading(false) }
     }
     reader.readAsText(file)
+  }
+
+  function handleJSONUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    e.target.value = ''
+    setCsvMessage('')
+    setCsvError('')
+    setCsvLoading(true)
+    const reader = new FileReader()
+    reader.onload = evt => {
+      try { importJSON(evt.target.result) }
+      catch { setCsvError('Could not parse file — make sure it is a valid ACC setup JSON.') }
+      finally { setCsvLoading(false) }
+    }
+    reader.readAsText(file)
+  }
+
+  function importJSON(text) {
+    const json = JSON.parse(text)
+    const newForm = { ...form }
+    const newSections = []
+
+    if (json.carName) newForm.car_name = json.carName
+
+    function camelToWords(str) {
+      return str
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+        .replace(/^./, s => s.toUpperCase())
+        .trim()
+    }
+
+    function buildFields(obj) {
+      return Object.entries(obj).map(([k, v]) => {
+        let val
+        if (Array.isArray(v))
+          val = v.every(item => typeof item !== 'object') ? v.join(', ') : JSON.stringify(v)
+        else if (typeof v === 'object' && v !== null)
+          val = JSON.stringify(v)
+        else
+          val = String(v)
+        return { id: crypto.randomUUID(), field_name: camelToWords(k), field_value: val }
+      })
+    }
+
+    for (const [key, val] of Object.entries(json)) {
+      if (key === 'carName' || key === 'trackBopType') continue
+      if (typeof val !== 'object' || Array.isArray(val) || val === null) continue
+
+      const hasNestedObjects = Object.values(val).some(v => typeof v === 'object' && !Array.isArray(v))
+      if (hasNestedObjects) {
+        for (const [subKey, subVal] of Object.entries(val)) {
+          if (typeof subVal === 'object' && !Array.isArray(subVal) && subVal !== null) {
+            const fields = buildFields(subVal)
+            if (fields.length) newSections.push({ id: crypto.randomUUID(), name: camelToWords(subKey), fields })
+          }
+        }
+      } else {
+        const fields = buildFields(val)
+        if (fields.length) newSections.push({ id: crypto.randomUUID(), name: camelToWords(key), fields })
+      }
+    }
+
+    setForm(newForm)
+    setSections(newSections.length > 0 ? newSections : [emptySection()])
+    const count = newSections.length
+    setCsvMessage(`Imported ${count} section${count !== 1 ? 's' : ''} from JSON — select a game and fill in the title below then save.`)
   }
 
   function importCSV(text) {
@@ -250,7 +319,11 @@ export default function SetupForm() {
                   ? <><i className="fa-solid fa-spinner fa-spin" /> Importing…</>
                   : <><i className="fa-solid fa-file-arrow-up" /> Upload CSV</>}
               </button>
-              <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleCSVUpload} />
+              <button type="button" className="btn btn-secondary" onClick={() => jsonInputRef.current.click()} disabled={csvLoading}>
+                <i className="fa-solid fa-file-code" /> Upload ACC JSON
+              </button>
+              <input ref={fileInputRef}  type="file" accept=".csv,text/csv"   style={{ display: 'none' }} onChange={handleCSVUpload} />
+              <input ref={jsonInputRef}  type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleJSONUpload} />
             </div>
             {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
             {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
