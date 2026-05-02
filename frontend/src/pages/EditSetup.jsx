@@ -82,7 +82,11 @@ export default function EditSetup() {
     })
 
     setSubmitting(false)
-    if (!res.ok) { setSubmitError('Something went wrong. Please try again.'); return }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      setSubmitError(`Something went wrong (${res.status}): ${body.error ?? 'unknown error'}`)
+      return
+    }
     navigate(`/setup/${id}`)
   }
 
