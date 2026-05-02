@@ -298,34 +298,6 @@ export default function SetupForm() {
       <h1>New Setup</h1>
       <form className="setup-form" onSubmit={handleSubmit}>
 
-        {/* JSON import — unlocks after game selection */}
-        {form.game_id ? (
-          <div className="csv-import-card">
-            <div className="csv-import-info">
-              <i className="fa-solid fa-file-code csv-import-icon" />
-              <div>
-                <strong>Import from JSON <span className="acc-badge">Optimised for ACC</span></strong>
-                <p>Upload a setup JSON file to auto-fill the sections below. You can edit any field before saving.</p>
-              </div>
-            </div>
-            <div className="csv-import-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => jsonInputRef.current.click()} disabled={csvLoading}>
-                {csvLoading
-                  ? <><i className="fa-solid fa-spinner fa-spin" /> Importing…</>
-                  : <><i className="fa-solid fa-file-arrow-up" /> Upload JSON</>}
-              </button>
-              <input ref={jsonInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleJSONUpload} />
-            </div>
-            {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
-            {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
-          </div>
-        ) : (
-          <div className="csv-import-card csv-import-locked">
-            <i className="fa-solid fa-file-code csv-import-icon" />
-            <p>Select a game below to unlock JSON import.</p>
-          </div>
-        )}
-
         {/* CSV import — unlocks after game selection */}
         {form.game_id ? (
           <div className="csv-import-card">
@@ -355,6 +327,34 @@ export default function SetupForm() {
           <div className="csv-import-card csv-import-locked">
             <i className="fa-solid fa-file-csv csv-import-icon" />
             <p>Select a game below to unlock CSV import.</p>
+          </div>
+        )}
+
+        {/* JSON import — unlocks after game selection */}
+        {form.game_id ? (
+          <div className="csv-import-card">
+            <div className="csv-import-info">
+              <i className="fa-solid fa-file-code csv-import-icon" />
+              <div>
+                <strong>Import from JSON <span className="acc-badge">Optimised for ACC</span></strong>
+                <p>Upload a setup JSON file to auto-fill the sections below. You can edit any field before saving.</p>
+              </div>
+            </div>
+            <div className="csv-import-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => jsonInputRef.current.click()} disabled={csvLoading}>
+                {csvLoading
+                  ? <><i className="fa-solid fa-spinner fa-spin" /> Importing…</>
+                  : <><i className="fa-solid fa-file-arrow-up" /> Upload JSON</>}
+              </button>
+              <input ref={jsonInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleJSONUpload} />
+            </div>
+            {csvMessage && <p className="csv-success"><i className="fa-solid fa-check" /> {csvMessage}</p>}
+            {csvError   && <p className="csv-error"><i className="fa-solid fa-triangle-exclamation" /> {csvError}</p>}
+          </div>
+        ) : (
+          <div className="csv-import-card csv-import-locked">
+            <i className="fa-solid fa-file-code csv-import-icon" />
+            <p>Select a game below to unlock JSON import.</p>
           </div>
         )}
 
