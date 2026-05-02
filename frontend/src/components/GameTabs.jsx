@@ -20,19 +20,19 @@ export default function GameTabs() {
   const [deleteError, setDeleteError]         = useState('')
   const [deleting, setDeleting]               = useState(false)
 
-  const wrapperRef = useRef(null)
+  const scrollRef = useRef(null)
   const [showFadeLeft, setShowFadeLeft]   = useState(false)
   const [showFadeRight, setShowFadeRight] = useState(false)
 
   function checkOverflow() {
-    const el = wrapperRef.current
+    const el = scrollRef.current
     if (!el) return
     setShowFadeLeft(el.scrollLeft > 1)
     setShowFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
   }
 
   function scrollTabs(dir) {
-    const el = wrapperRef.current
+    const el = scrollRef.current
     if (!el) return
     el.scrollBy({ left: dir * 200, behavior: 'smooth' })
   }
@@ -110,47 +110,49 @@ export default function GameTabs() {
 
   return (
     <>
-      <div className="game-tabs-container">
-        {showFadeLeft && (
-          <button className="game-tabs-arrow game-tabs-arrow-left" onClick={() => scrollTabs(-1)} aria-label="Scroll left">
-            <i className="fa-solid fa-chevron-left" />
-          </button>
-        )}
-        <div className="game-tabs-wrapper" ref={wrapperRef} onScroll={checkOverflow}>
-        <div className="game-tabs">
-          <button className={`game-tab${activeGame === 'all' ? ' active' : ''}`} onClick={() => selectGame('all')}>
-            All Games
-          </button>
-          {games.map(g => (
-            <button
-              key={g.id}
-              className={`game-tab${activeGame === g.slug ? ' active' : ''}`}
-              onClick={() => selectGame(g.slug)}
-            >
-              {g.name}
-              {isAdmin && activeGame === g.slug && (
-                <span
-                  className="game-tab-delete-icon"
-                  onClick={e => openDeleteGame(e, g)}
-                  title={`Delete ${g.name}`}
-                >
-                  <i className="fa-solid fa-trash" />
-                </span>
-              )}
+      <div className="game-tabs-wrapper">
+        <div className="game-tabs-container">
+          {showFadeLeft && (
+            <button className="game-tabs-arrow game-tabs-arrow-left" onClick={() => scrollTabs(-1)} aria-label="Scroll left">
+              <i className="fa-solid fa-chevron-left" />
             </button>
-          ))}
-          {isAdmin && (
-            <button className="btn btn-ghost game-tab-add" onClick={() => { setError(''); setShowAddModal(true) }}>
-              <i className="fa-solid fa-plus" /> Add Game
+          )}
+          <div className="game-tabs-scrollable" ref={scrollRef} onScroll={checkOverflow}>
+            <div className="game-tabs">
+              <button className={`game-tab${activeGame === 'all' ? ' active' : ''}`} onClick={() => selectGame('all')}>
+                All Games
+              </button>
+              {games.map(g => (
+                <button
+                  key={g.id}
+                  className={`game-tab${activeGame === g.slug ? ' active' : ''}`}
+                  onClick={() => selectGame(g.slug)}
+                >
+                  {g.name}
+                  {isAdmin && activeGame === g.slug && (
+                    <span
+                      className="game-tab-delete-icon"
+                      onClick={e => openDeleteGame(e, g)}
+                      title={`Delete ${g.name}`}
+                    >
+                      <i className="fa-solid fa-trash" />
+                    </span>
+                  )}
+                </button>
+              ))}
+              {isAdmin && (
+                <button className="btn btn-ghost game-tab-add" onClick={() => { setError(''); setShowAddModal(true) }}>
+                  <i className="fa-solid fa-plus" /> Add Game
+                </button>
+              )}
+            </div>
+          </div>
+          {showFadeRight && (
+            <button className="game-tabs-arrow game-tabs-arrow-right" onClick={() => scrollTabs(1)} aria-label="Scroll right">
+              <i className="fa-solid fa-chevron-right" />
             </button>
           )}
         </div>
-      </div>
-        {showFadeRight && (
-          <button className="game-tabs-arrow game-tabs-arrow-right" onClick={() => scrollTabs(1)} aria-label="Scroll right">
-            <i className="fa-solid fa-chevron-right" />
-          </button>
-        )}
       </div>
 
       {isAdmin && showAddModal && (

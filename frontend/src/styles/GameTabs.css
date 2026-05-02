@@ -1,16 +1,22 @@
 @import './variables.css';
 
-.game-tabs-container {
-  position: relative;
-}
-
 .game-tabs-wrapper {
   background: var(--color-bg-raised);
   border-bottom: 1px solid var(--color-border);
+}
+
+.game-tabs-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+  position: relative;
+}
+
+.game-tabs-scrollable {
   overflow-x: auto;
   scrollbar-width: none;
 }
-.game-tabs-wrapper::-webkit-scrollbar { display: none; }
+.game-tabs-scrollable::-webkit-scrollbar { display: none; }
 
 .game-tabs-arrow {
   position: absolute;
@@ -55,9 +61,6 @@
 }
 
 .game-tabs {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 var(--space-md);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
