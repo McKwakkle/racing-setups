@@ -89,6 +89,12 @@
 .nav-dropdown-signout { color: var(--color-text-muted); }
 .nav-dropdown-signout:hover { color: var(--color-error); background: var(--color-bg-raised); }
 
+@media (max-width: 768px) {
+  .navbar-inner { padding: var(--space-sm) var(--space-md); }
+  .nav-user-btn { padding: var(--space-xs) var(--space-sm); font-size: 0.9rem; min-height: 44px; }
+}
+
 @media (max-width: 480px) {
   .nav-username { display: none; }
+  .navbar-logo { font-size: 1rem; }
 }

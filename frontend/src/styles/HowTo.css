@@ -144,3 +144,10 @@
 }
 
 .howto-table tr:last-child td { border-bottom: none; }
+
+@media (max-width: 768px) {
+  .howto-page h1 { font-size: 1.3rem; }
+  .howto-page { padding: var(--space-md) 0 var(--space-lg); }
+  .howto-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .howto-table { min-width: 500px; }
+}

@@ -31,7 +31,7 @@ export default function HowTo() {
             <h2>Accounts &amp; what you can see</h2>
           </div>
 
-          <table className="howto-table">
+          <div className="howto-table-wrap"><table className="howto-table">
             <thead>
               <tr>
                 <th>Feature</th>
@@ -49,7 +49,7 @@ export default function HowTo() {
               <tr><td>Private setup drafts</td><td>❌</td><td>✅</td></tr>
               <tr><td>Follow favourite games</td><td>❌</td><td>✅</td></tr>
             </tbody>
-          </table>
+          </table></div>
 
           <div className="howto-callout">
             <i className="fa-solid fa-circle-info" />
@@ -139,7 +139,7 @@ export default function HowTo() {
             <i className="fa-solid fa-map-location-dot" />
             <h2>Track Specific vs Generic</h2>
           </div>
-          <table className="howto-table">
+          <div className="howto-table-wrap"><table className="howto-table">
             <thead>
               <tr><th>Type</th><th>When to use</th><th>Extra fields</th></tr>
             </thead>
@@ -155,7 +155,7 @@ export default function HowTo() {
                 <td>Track (required), Lap Time (optional), Conditions (optional)</td>
               </tr>
             </tbody>
-          </table>
+          </table></div>
           <div className="howto-callout">
             <i className="fa-solid fa-circle-info" />
             <span>Track Conditions accepts free text but suggests common options like Dry, Wet, Intermediate, Muddy, and Tacky. Type anything that describes the surface.</span>

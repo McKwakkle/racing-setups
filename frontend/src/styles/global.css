@@ -83,6 +83,11 @@ input:focus, select:focus, textarea:focus {
 }
 .btn-ghost:hover { color: var(--color-primary); }
 
+@media (max-width: 768px) {
+  .container { padding: 0 var(--space-sm); }
+  .btn { min-height: 44px; }
+}
+
 .text-muted   { color: var(--color-text-muted); }
 .text-primary { color: var(--color-primary); }
 .text-small   { font-size: 0.85rem; }

@@ -171,3 +171,11 @@
 }
 .strength-rule.met { color: var(--color-success); }
 .strength-rule i { font-size: 0.65rem; }
+
+@media (max-width: 768px) {
+  .auth-page { padding: var(--space-md); align-items: flex-start; padding-top: var(--space-lg); }
+  .auth-card { padding: var(--space-md); }
+  .auth-header h1 { font-size: 1.3rem; }
+  .btn-oauth { min-height: 44px; }
+  .auth-submit { min-height: 44px; }
+}

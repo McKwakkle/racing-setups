@@ -71,3 +71,9 @@
   font-size: 0.75rem;
   margin-right: 3px;
 }
+
+@media (max-width: 768px) {
+  .rating-block { flex-wrap: wrap; gap: var(--space-sm); }
+  .rating-label { width: 100%; }
+  .rating-btn { min-height: 44px; padding: var(--space-xs) var(--space-lg); font-size: 0.95rem; }
+}

@@ -260,8 +260,21 @@
 }
 
 @media (max-width: 768px) {
+  .setup-form-page h1 { font-size: 1.3rem; }
   .form-row { grid-template-columns: 1fr; }
-  .field-row { grid-template-columns: 1fr 1fr auto; }
+  .field-row { grid-template-columns: 1fr auto; }
+  .field-row input:last-of-type { display: none; }
   .csv-import-actions { width: 100%; }
-  .csv-import-actions .btn { flex: 1; justify-content: center; }
+  .csv-import-actions .btn { flex: 1; justify-content: center; min-height: 44px; }
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions .btn { width: 100%; justify-content: center; min-height: 44px; }
+  .pin-modal { margin: var(--space-md); max-width: calc(100vw - 2 * var(--space-md)); }
+  .csv-import-info { min-width: 0; }
+}
+
+@media (max-width: 480px) {
+  .field-row { grid-template-columns: 1fr; grid-template-areas: "name" "value" "del"; }
+  .field-row > *:nth-child(1) { grid-area: name; }
+  .field-row > *:nth-child(2) { grid-area: value; }
+  .field-row > *:nth-child(3) { grid-area: del; justify-self: end; }
 }
