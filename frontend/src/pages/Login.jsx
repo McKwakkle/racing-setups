@@ -39,17 +39,15 @@ export default function Login() {
           <p>Sign in to access your setups</p>
         </div>
 
-        {/* OAuth buttons — uncomment once Google/Discord apps are configured
         <div className="oauth-buttons">
-          <button className="btn-oauth" onClick={() => signInWith('google')}>
+          {/* <button className="btn-oauth" onClick={() => signInWith('google')}>
             <i className="fa-brands fa-google" /> Continue with Google
-          </button>
+          </button> */}
           <button className="btn-oauth" onClick={() => signInWith('discord')}>
             <i className="fa-brands fa-discord" /> Continue with Discord
           </button>
         </div>
         <div className="auth-divider"><span>or</span></div>
-        */}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
