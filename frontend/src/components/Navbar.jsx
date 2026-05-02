@@ -31,7 +31,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-logo">
-          <i className="fa-solid fa-flag-checkered" />
+          <img src="/obelix-helmets.png" alt="Obelix" className="navbar-logo-img" />
           Obelix Setups
         </Link>
 
