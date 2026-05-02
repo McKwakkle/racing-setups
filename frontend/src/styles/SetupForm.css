@@ -154,13 +154,6 @@
 .pin-modal h3 { font-size: 1.1rem; font-weight: 600; }
 .pin-modal p  { font-size: 0.9rem; color: var(--color-text-muted); }
 
-.pin-input {
-  font-size: 1.5rem;
-  letter-spacing: 0.5rem;
-  text-align: center;
-  font-weight: 700;
-}
-
 .pin-modal-actions {
   display: flex;
   gap: var(--space-sm);
@@ -262,8 +255,7 @@
 @media (max-width: 768px) {
   .setup-form-page h1 { font-size: 1.3rem; }
   .form-row { grid-template-columns: 1fr; }
-  .field-row { grid-template-columns: 1fr auto; }
-  .field-row input:last-of-type { display: none; }
+  .field-row { grid-template-columns: 1fr 1fr auto; }
   .csv-import-actions { width: 100%; }
   .csv-import-actions .btn { flex: 1; justify-content: center; min-height: 44px; }
   .form-actions { flex-direction: column-reverse; }
