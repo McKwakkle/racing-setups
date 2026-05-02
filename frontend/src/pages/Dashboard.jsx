@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Filter from 'bad-words'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+
+const profanityFilter = new Filter()
 import SetupCard from '../components/SetupCard'
 import '../styles/Dashboard.css'
 import '../styles/SetupCard.css'
@@ -118,6 +121,12 @@ export default function Dashboard() {
       setUsernameErr('Username cannot contain spaces')
       return
     }
+    if (profanityFilter.isProfane(username)) {
+      setUsernameErr('Username contains inappropriate language')
+      return
+    }
+    const { data: taken } = await supabase.from('profiles').select('id').ilike('username', username).neq('id', session.user.id).maybeSingle()
+    if (taken) { setUsernameErr('That username is already taken'); return }
     setSavingUsername(true)
     const { error } = await supabase.from('profiles').update({ username }).eq('id', session.user.id)
     setSavingUsername(false)
@@ -260,7 +269,7 @@ export default function Dashboard() {
         {tab === 'Settings' && (
           <div className="dashboard-section">
 
-            <div className="settings-card">
+            {profile.is_admin && <div className="settings-card">
               <h3><i className="fa-solid fa-user" style={{ marginRight: 6 }} />Username</h3>
               <form className="settings-inline-form" onSubmit={saveUsername}>
                 <div className="form-group">
@@ -276,7 +285,7 @@ export default function Dashboard() {
               </form>
               {usernameErr && <p className="auth-error">{usernameErr}</p>}
               {usernameMsg && <p className="settings-save-msg"><i className="fa-solid fa-check" /> {usernameMsg}</p>}
-            </div>
+            </div>}
 
             <div className="settings-card">
               <h3><i className="fa-solid fa-lock" style={{ marginRight: 6 }} />Change Password</h3>

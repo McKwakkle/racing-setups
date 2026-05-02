@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Filter from 'bad-words'
 import { supabase } from '../lib/supabase'
 import '../styles/Auth.css'
+
+const profanityFilter = new Filter()
 
 function getStrength(password) {
   return {
@@ -46,10 +49,17 @@ export default function Register() {
       setError('Username cannot contain spaces')
       return
     }
+    if (profanityFilter.isProfane(username)) {
+      setError('Username contains inappropriate language')
+      return
+    }
     if (score < 4) { setError('Password does not meet all requirements'); return }
     if (password !== confirm) { setError('Passwords do not match'); return }
 
     setLoading(true)
+    const { data: taken } = await supabase.from('profiles').select('id').ilike('username', username.trim()).maybeSingle()
+    if (taken) { setLoading(false); setError('That username is already taken'); return }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
