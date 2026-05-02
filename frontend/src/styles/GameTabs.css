@@ -12,13 +12,45 @@
 }
 .game-tabs-wrapper::-webkit-scrollbar { display: none; }
 
-.game-tabs-fade-right {
+.game-tabs-arrow {
   position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 1px;
-  width: 80px;
-  background: linear-gradient(to right, transparent, var(--color-bg-raised));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  transition: color var(--transition), border-color var(--transition);
+}
+.game-tabs-arrow:hover { color: var(--color-primary); border-color: var(--color-primary); }
+.game-tabs-arrow-left  { left: 8px; }
+.game-tabs-arrow-right { right: 8px; }
+
+.game-tabs-arrow-left::before {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: -1px;
+  bottom: -1px;
+  width: 40px;
+  background: linear-gradient(to right, var(--color-bg-raised), transparent);
+  pointer-events: none;
+}
+.game-tabs-arrow-right::after {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: -1px;
+  bottom: -1px;
+  width: 40px;
+  background: linear-gradient(to left, var(--color-bg-raised), transparent);
   pointer-events: none;
 }
 

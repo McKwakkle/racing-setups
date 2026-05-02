@@ -21,12 +21,20 @@ export default function GameTabs() {
   const [deleting, setDeleting]               = useState(false)
 
   const wrapperRef = useRef(null)
-  const [showFade, setShowFade] = useState(false)
+  const [showFadeLeft, setShowFadeLeft]   = useState(false)
+  const [showFadeRight, setShowFadeRight] = useState(false)
 
   function checkOverflow() {
     const el = wrapperRef.current
     if (!el) return
-    setShowFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+    setShowFadeLeft(el.scrollLeft > 1)
+    setShowFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }
+
+  function scrollTabs(dir) {
+    const el = wrapperRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 200, behavior: 'smooth' })
   }
 
   const activeGame = searchParams.get('game') || 'all'
@@ -103,7 +111,12 @@ export default function GameTabs() {
   return (
     <>
       <div className="game-tabs-container">
-      <div className="game-tabs-wrapper" ref={wrapperRef} onScroll={checkOverflow}>
+        {showFadeLeft && (
+          <button className="game-tabs-arrow game-tabs-arrow-left" onClick={() => scrollTabs(-1)} aria-label="Scroll left">
+            <i className="fa-solid fa-chevron-left" />
+          </button>
+        )}
+        <div className="game-tabs-wrapper" ref={wrapperRef} onScroll={checkOverflow}>
         <div className="game-tabs">
           <button className={`game-tab${activeGame === 'all' ? ' active' : ''}`} onClick={() => selectGame('all')}>
             All Games
@@ -133,7 +146,11 @@ export default function GameTabs() {
           )}
         </div>
       </div>
-      {showFade && <div className="game-tabs-fade-right" />}
+        {showFadeRight && (
+          <button className="game-tabs-arrow game-tabs-arrow-right" onClick={() => scrollTabs(1)} aria-label="Scroll right">
+            <i className="fa-solid fa-chevron-right" />
+          </button>
+        )}
       </div>
 
       {isAdmin && showAddModal && (
