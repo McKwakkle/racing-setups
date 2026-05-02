@@ -205,6 +205,19 @@
   margin-bottom: 2px;
 }
 
+.acc-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--color-primary);
+  color: #fff;
+  vertical-align: middle;
+  margin-left: 6px;
+  letter-spacing: 0.02em;
+}
+
 .csv-import-info p {
   font-size: 0.82rem;
   color: var(--color-text-muted);
