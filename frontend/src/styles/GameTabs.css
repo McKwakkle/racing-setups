@@ -1,5 +1,9 @@
 @import './variables.css';
 
+.game-tabs-container {
+  position: relative;
+}
+
 .game-tabs-wrapper {
   background: var(--color-bg-raised);
   border-bottom: 1px solid var(--color-border);
@@ -7,6 +11,16 @@
   scrollbar-width: none;
 }
 .game-tabs-wrapper::-webkit-scrollbar { display: none; }
+
+.game-tabs-fade-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 1px;
+  width: 80px;
+  background: linear-gradient(to right, transparent, var(--color-bg-raised));
+  pointer-events: none;
+}
 
 .game-tabs {
   max-width: var(--max-width);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -20,6 +20,15 @@ export default function GameTabs() {
   const [deleteError, setDeleteError]         = useState('')
   const [deleting, setDeleting]               = useState(false)
 
+  const wrapperRef = useRef(null)
+  const [showFade, setShowFade] = useState(false)
+
+  function checkOverflow() {
+    const el = wrapperRef.current
+    if (!el) return
+    setShowFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }
+
   const activeGame = searchParams.get('game') || 'all'
 
   useEffect(() => {
@@ -27,6 +36,12 @@ export default function GameTabs() {
       if (data) setGames(data)
     })
   }, [])
+
+  useEffect(() => {
+    checkOverflow()
+    window.addEventListener('resize', checkOverflow)
+    return () => window.removeEventListener('resize', checkOverflow)
+  }, [games])
 
   function selectGame(slug) {
     setSearchParams(prev => {
@@ -87,7 +102,8 @@ export default function GameTabs() {
 
   return (
     <>
-      <div className="game-tabs-wrapper">
+      <div className="game-tabs-container">
+      <div className="game-tabs-wrapper" ref={wrapperRef} onScroll={checkOverflow}>
         <div className="game-tabs">
           <button className={`game-tab${activeGame === 'all' ? ' active' : ''}`} onClick={() => selectGame('all')}>
             All Games
@@ -116,6 +132,8 @@ export default function GameTabs() {
             </button>
           )}
         </div>
+      </div>
+      {showFade && <div className="game-tabs-fade-right" />}
       </div>
 
       {isAdmin && showAddModal && (
