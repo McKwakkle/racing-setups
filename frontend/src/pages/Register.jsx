@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Filter from 'bad-words'
+import { Filter } from 'bad-words'
 import { supabase } from '../lib/supabase'
 import '../styles/Auth.css'
 
