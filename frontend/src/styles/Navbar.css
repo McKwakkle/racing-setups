@@ -25,7 +25,13 @@
   align-items: center;
   gap: var(--space-sm);
 }
-.navbar-logo i { color: var(--color-primary); }
+.navbar-logo-img {
+  height: 1.6rem;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  transform: scaleX(-1);
+}
 .navbar-logo:hover { color: var(--color-primary-light); }
 
 .navbar-actions { display: flex; align-items: center; gap: var(--space-sm); }
