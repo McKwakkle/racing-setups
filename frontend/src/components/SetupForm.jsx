@@ -304,11 +304,11 @@ export default function SetupForm() {
             <i className="fa-solid fa-file-code csv-import-icon" />
             <div>
               <strong>Import from JSON <span className="acc-badge">Optimised for ACC</span></strong>
-              <p>Upload a setup JSON file to auto-fill the sections below. Works with any game — select your game and fill in the title after importing.</p>
+              <p>Upload a setup JSON file to auto-fill the sections below. Select a game first, then upload your file.</p>
             </div>
           </div>
           <div className="csv-import-actions">
-            <button type="button" className="btn btn-secondary" onClick={() => jsonInputRef.current.click()} disabled={csvLoading}>
+            <button type="button" className="btn btn-secondary" onClick={() => jsonInputRef.current.click()} disabled={csvLoading || !form.game_id} title={!form.game_id ? 'Select a game first' : undefined}>
               {csvLoading
                 ? <><i className="fa-solid fa-spinner fa-spin" /> Importing…</>
                 : <><i className="fa-solid fa-file-arrow-up" /> Upload JSON</>}
