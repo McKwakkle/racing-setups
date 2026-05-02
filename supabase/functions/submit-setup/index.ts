@@ -211,7 +211,8 @@ serve(async (req) => {
     return json({ id: newSetup.id })
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    const message = err instanceof Error ? err.message : ((err as any)?.message ?? JSON.stringify(err))
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
