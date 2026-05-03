@@ -1,0 +1,154 @@
+@import './variables.css';
+
+.ev-carousel-section {
+  margin-top: var(--space-xl);
+}
+
+.ev-carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.ev-carousel-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ev-carousel-viewall {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color var(--transition);
+}
+.ev-carousel-viewall:hover { color: var(--color-primary); }
+.ev-carousel-viewall i { font-size: 0.7rem; }
+
+/* Carousel track — mirrors SetupCarousel pattern */
+.ev-carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+  margin-left: calc(-1 * var(--space-md));
+  margin-right: calc(-1 * var(--space-md));
+  padding: var(--space-xs) 0 var(--space-md);
+}
+
+.ev-carousel-track {
+  display: flex;
+  width: max-content;
+  animation: ev-scroll var(--ev-dur, 40s) linear infinite;
+}
+.ev-carousel-track:hover { animation-play-state: paused; }
+
+@keyframes ev-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ev-carousel-item {
+  width: 300px;
+  flex-shrink: 0;
+  margin-right: var(--space-md);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Edge fades */
+.ev-carousel-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 1;
+  pointer-events: none;
+}
+.ev-carousel-fade-left  { left:  0; background: linear-gradient(to right, var(--color-bg), transparent); }
+.ev-carousel-fade-right { right: 0; background: linear-gradient(to left,  var(--color-bg), transparent); }
+
+/* Compact event card for the carousel */
+.ev-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  height: 100%;
+}
+.ev-card-recurring { border-left-color: var(--color-primary); }
+.ev-card-oneoff    { border-left-color: #3b82f6; }
+
+.ev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: flex-start;
+}
+.ev-badge-recurring { background: rgba(168,85,247,0.15); color: var(--color-primary); }
+.ev-badge-oneoff    { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+
+.ev-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.ev-card-schedule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.ev-card-schedule i { font-size: 0.75rem; flex-shrink: 0; }
+
+.ev-card-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ev-card-location {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: auto;
+  word-break: break-word;
+}
+.ev-card-location .fa-discord { color: #5865f2; flex-shrink: 0; margin-top: 1px; }
+
+.ev-card-creator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-border);
+  margin-top: auto;
+}
+.ev-card-creator i { color: var(--color-primary); font-size: 0.85rem; }
+
+@media (max-width: 480px) {
+  .ev-carousel-item { width: 260px; }
+  .ev-carousel-fade { width: 40px; }
+}
