@@ -49,42 +49,6 @@
 
 .navbar-actions { display: flex; align-items: center; gap: var(--space-sm); }
 
-/* Events menu */
-.nav-events-menu { position: relative; }
-
-.nav-events-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color var(--transition), border-color var(--transition);
-}
-.nav-events-btn:hover       { color: var(--color-text); border-color: var(--color-border); }
-.nav-events-btn.open,
-.nav-events-btn.active      { color: var(--color-primary); border-color: var(--color-primary); }
-.nav-events-btn .fa-calendar-days { font-size: 0.95rem; }
-
-.nav-chevron.rotated { transform: rotate(180deg); }
-.nav-chevron { transition: transform 0.2s ease; }
-
-.nav-events-dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  min-width: 180px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  z-index: 200;
-  overflow: hidden;
-}
 
 /* User menu */
 .nav-user-menu { position: relative; }

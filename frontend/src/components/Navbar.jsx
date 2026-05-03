@@ -3,44 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Navbar.css';
 
-function EventsMenu() {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const { pathname } = useLocation()
-  const isActive = pathname.startsWith('/events')
-
-  useEffect(() => {
-    if (!open) return
-    function close(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-
-  return (
-    <div className="nav-events-menu" ref={ref}>
-      <button
-        className={`nav-events-btn${open ? ' open' : ''}${isActive ? ' active' : ''}`}
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-      >
-        <i className="fa-solid fa-calendar-days" />
-        <span>Events</span>
-        <i className={`fa-solid fa-chevron-down nav-chevron${open ? ' rotated' : ''}`} />
-      </button>
-      {open && (
-        <div className="nav-events-dropdown">
-          <Link to="/events/recurring" className="nav-dropdown-item" onClick={() => setOpen(false)}>
-            <i className="fa-solid fa-rotate" /> Recurring Events
-          </Link>
-          <Link to="/events/oneoff" className="nav-dropdown-item" onClick={() => setOpen(false)}>
-            <i className="fa-solid fa-calendar-check" /> One-off Events
-          </Link>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function Navbar() {
   const { search } = useLocation();
   const navigate = useNavigate();
@@ -77,7 +39,6 @@ export default function Navbar() {
         </Link>
 
         <div className="navbar-actions">
-          <EventsMenu />
           {session ? (
             <>
               <Link

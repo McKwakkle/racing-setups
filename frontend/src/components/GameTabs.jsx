@@ -4,6 +4,52 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/GameTabs.css'
 
+function EventsDropdown() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const { pathname } = useLocation()
+  const isActive = pathname.startsWith('/events')
+
+  useEffect(() => {
+    if (!open) return
+    function close(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <div className="game-tabs-selector" ref={ref}>
+      <button
+        className={`game-tabs-trigger${open ? ' open' : ''}${isActive ? ' has-selection' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <i className="fa-solid fa-calendar-days" />
+        <span className="game-tabs-label">Events</span>
+        <i className={`fa-solid fa-chevron-down game-tabs-chevron${open ? ' rotated' : ''}`} />
+      </button>
+      <div className={`game-tabs-panel${open ? ' open' : ''}`}>
+        <div className="game-tabs-scroll">
+          <Link
+            to="/events/recurring"
+            className={`game-tabs-item${pathname === '/events/recurring' ? ' active' : ''}`}
+            onClick={() => setOpen(false)}
+          >
+            <span><i className="fa-solid fa-rotate" style={{ marginRight: '8px', fontSize: '0.8rem' }} />Recurring Events</span>
+          </Link>
+          <Link
+            to="/events/oneoff"
+            className={`game-tabs-item${pathname === '/events/oneoff' ? ' active' : ''}`}
+            onClick={() => setOpen(false)}
+          >
+            <span><i className="fa-solid fa-calendar-check" style={{ marginRight: '8px', fontSize: '0.8rem' }} />One-off Events</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function GameTabs() {
   const [games, setGames] = useState([])
   const [searchParams, setSearchParams] = useSearchParams()
@@ -183,6 +229,11 @@ export default function GameTabs() {
               {showScrollFade && <div className="game-tabs-scroll-fade" />}
             </div>
           </div>
+
+          <span className="game-tabs-divider" aria-hidden="true" />
+
+          {/* Events dropdown */}
+          <EventsDropdown />
 
         </div>
       </div>
