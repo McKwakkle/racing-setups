@@ -8,7 +8,7 @@ create table public.events (
   end_time    timestamptz,
   is_recurring boolean    not null default false,
   rrule       text,                          -- raw RRULE string from ICS (recurring only)
-  created_by  uuid        references auth.users(id) on delete set null,
+  created_by  uuid        references public.profiles(id) on delete set null,
   created_at  timestamptz default now()
 );
 
