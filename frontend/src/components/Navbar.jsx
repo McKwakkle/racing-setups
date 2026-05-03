@@ -32,7 +32,10 @@ export default function Navbar() {
       <div className="navbar-inner">
         <Link to="/" className="navbar-logo">
           <i className="fa-solid fa-flag-checkered" />
-          Obelix Setups
+          <div className="navbar-logo-text">
+            <span className="navbar-logo-title">Obelix Motorsport</span>
+            <span className="navbar-logo-subtitle">Performance Setups &amp; Race Engineering</span>
+          </div>
         </Link>
 
         <div className="navbar-actions">

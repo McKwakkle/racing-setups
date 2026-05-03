@@ -26,6 +26,25 @@
   gap: var(--space-sm);
 }
 .navbar-logo i { color: var(--color-primary); }
+
+.navbar-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.navbar-logo-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.navbar-logo-subtitle {
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .navbar-logo:hover { color: var(--color-primary-light); }
 
 .navbar-actions { display: flex; align-items: center; gap: var(--space-sm); }
