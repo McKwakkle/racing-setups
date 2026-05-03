@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import SetupCard from './SetupCard'
+import SetupCarousel from './SetupCarousel'
 import '../styles/SetupGrid.css'
 
 const PAGE_SIZE = 10
@@ -43,8 +44,7 @@ export default function SetupGrid() {
         .order('created_at', { ascending: false })
 
       if (isHomeView) {
-        // Home: just the 5 most recent
-        query = query.limit(6)
+        query = query.limit(12)
       } else {
         if (gameSlug)     query = query.eq('games.slug', gameSlug)
         if (carSearch)    query = query.ilike('car_name', `%${carSearch}%`)
@@ -108,20 +108,27 @@ export default function SetupGrid() {
     )
   }
 
-  const visibleSetups = isHomeView ? setups : setups.slice(0, displayCount)
+  if (isHomeView) {
+    return (
+      <>
+        <p className="setup-grid-results">Latest setups</p>
+        <SetupCarousel setups={setups} topAuthors={topAuthors} />
+      </>
+    )
+  }
+
+  const visibleSetups = setups.slice(0, displayCount)
   const remaining = setups.length - displayCount
 
   return (
     <>
       <p className="setup-grid-results">
-        {isHomeView
-          ? '6 most recent setups'
-          : `${setups.length} setup${setups.length !== 1 ? 's' : ''} found${gameSlug ? ' — sorted by top rated' : ''}`}
+        {`${setups.length} setup${setups.length !== 1 ? 's' : ''} found${gameSlug ? ' — sorted by top rated' : ''}`}
       </p>
       <div className="setup-grid">
         {visibleSetups.map(s => <SetupCard key={s.id} setup={s} topAuthors={topAuthors} />)}
       </div>
-      {!isHomeView && remaining > 0 && (
+      {remaining > 0 && (
         <div className="load-more">
           <button className="btn btn-secondary" onClick={() => setDisplayCount(n => n + PAGE_SIZE)}>
             <i className="fa-solid fa-chevron-down" /> Load More
