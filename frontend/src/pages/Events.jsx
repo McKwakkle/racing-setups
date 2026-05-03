@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { parseICS, validateRecurring, validateOneOff, formatRRule } from '../lib/parseICS'
+import GameTabs from '../components/GameTabs'
 import EventCard from '../components/EventCard'
 import '../styles/Events.css'
 
@@ -105,6 +106,8 @@ export default function Events() {
     : 'Upload an ICS file for a single upcoming event.'
 
   return (
+    <div>
+      <GameTabs />
     <div className="events-page container">
 
       {/* Header + tab switcher */}
@@ -207,6 +210,7 @@ export default function Events() {
           ))}
         </div>
       )}
+    </div>
     </div>
   )
 }
