@@ -12,6 +12,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import HowTo from './pages/HowTo'
+import Events from './pages/Events'
 import './styles/global.css'
 
 function RequireAuth({ children }) {
@@ -31,6 +32,7 @@ function AppRoutes() {
           <Route path="/"                element={<Home />} />
           <Route path="/setup/:id"       element={<SetupPage />} />
           <Route path="/how-to"          element={<HowTo />} />
+          <Route path="/events/:type"    element={<Events />} />
           <Route path="/login"           element={<Login />} />
           <Route path="/register"        element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

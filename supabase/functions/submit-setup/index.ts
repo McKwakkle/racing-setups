@@ -82,6 +82,33 @@ serve(async (req) => {
       }
     }
 
+    // ── Add event (any authenticated user) ────────────────────────────────
+    if (action === 'add_event') {
+      const { event } = body
+      const { error } = await supabase.from('events').insert({
+        title:        trunc(event.title, 200),
+        description:  trunc(event.description, 2000),
+        location:     trunc(event.location, 300),
+        start_time:   event.startTime,
+        end_time:     event.endTime ?? null,
+        is_recurring: event.isRecurring ?? false,
+        rrule:        event.rrule ?? null,
+        created_by:   user.id,
+      })
+      if (error) throw error
+      return json({ ok: true })
+    }
+
+    // ── Delete event (creator or admin) ────────────────────────────────────
+    if (action === 'delete_event') {
+      const { data: ev } = await supabase.from('events').select('created_by').eq('id', body.event_id).single()
+      if (!ev) return json({ error: 'Not found' }, 404)
+      if (ev.created_by !== user.id && !await isAdmin()) return json({ error: 'Forbidden' }, 403)
+      const { error } = await supabase.from('events').delete().eq('id', body.event_id)
+      if (error) throw error
+      return json({ ok: true })
+    }
+
     // ── Add game (admin only) ──────────────────────────────────────────────
     if (action === 'add_game') {
       if (!await isAdmin()) return json({ error: 'Forbidden' }, 403)
