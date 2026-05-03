@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/GameTabs.css'
@@ -7,7 +7,8 @@ import '../styles/GameTabs.css'
 export default function GameTabs() {
   const [games, setGames] = useState([])
   const [searchParams, setSearchParams] = useSearchParams()
-  const { session, profile } = useAuth()
+  const { profile } = useAuth()
+  const { pathname } = useLocation()
   const isAdmin = profile?.is_admin === true
 
   const [showAddModal, setShowAddModal]     = useState(false)
@@ -20,32 +21,16 @@ export default function GameTabs() {
   const [deleteError, setDeleteError]         = useState('')
   const [deleting, setDeleting]               = useState(false)
 
-  const scrollRef = useRef(null)
-  const [showFadeLeft, setShowFadeLeft]   = useState(false)
-  const [showFadeRight, setShowFadeRight] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function close() { setMenuOpen(false) }
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [menuOpen])
-
-  function checkOverflow() {
-    const el = scrollRef.current
-    if (!el) return
-    setShowFadeLeft(el.scrollLeft > 1)
-    setShowFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
-  }
-
-  function scrollTabs(dir) {
-    const el = scrollRef.current
-    if (!el) return
-    el.scrollBy({ left: dir * 200, behavior: 'smooth' })
-  }
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [showScrollFade, setShowScrollFade] = useState(false)
+  const selectorRef = useRef(null)
+  const scrollRef   = useRef(null)
 
   const activeGame = searchParams.get('game') || 'all'
+  const activeGameName = activeGame === 'all'
+    ? 'All Games'
+    : (games.find(g => g.slug === activeGame)?.name || 'All Games')
+  const isHome = pathname === '/'
 
   useEffect(() => {
     supabase.from('games').select('*').order('name').then(({ data }) => {
@@ -54,10 +39,24 @@ export default function GameTabs() {
   }, [])
 
   useEffect(() => {
-    checkOverflow()
-    window.addEventListener('resize', checkOverflow)
-    return () => window.removeEventListener('resize', checkOverflow)
-  }, [games])
+    if (!dropdownOpen) return
+    function close(e) {
+      if (selectorRef.current && !selectorRef.current.contains(e.target))
+        setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [dropdownOpen])
+
+  function checkScrollFade() {
+    const el = scrollRef.current
+    if (!el) return
+    setShowScrollFade(el.scrollTop + el.clientHeight < el.scrollHeight - 2)
+  }
+
+  useEffect(() => {
+    if (dropdownOpen) setTimeout(checkScrollFade, 30)
+  }, [dropdownOpen, games])
 
   function selectGame(slug) {
     setSearchParams(prev => {
@@ -67,6 +66,7 @@ export default function GameTabs() {
       next.delete('car')
       return next
     })
+    setDropdownOpen(false)
   }
 
   async function handleAddGame(e) {
@@ -92,6 +92,7 @@ export default function GameTabs() {
 
   function openDeleteGame(e, game) {
     e.stopPropagation()
+    setDropdownOpen(false)
     setGameToDelete(game)
     setDeleteError('')
     setShowDeleteModal(true)
@@ -121,79 +122,73 @@ export default function GameTabs() {
       <div className="game-tabs-wrapper">
         <div className="game-tabs-container">
 
-          {/* Mobile burger menu */}
-          <div className="game-tabs-mobile" onClick={e => e.stopPropagation()}>
-            <button className="game-tabs-burger" onClick={() => setMenuOpen(o => !o)}>
-              <i className="fa-solid fa-bars" />
-              <span>{activeGame === 'all' ? 'All Games' : (games.find(g => g.slug === activeGame)?.name || 'All Games')}</span>
-              <i className={`fa-solid fa-chevron-${menuOpen ? 'up' : 'down'} game-tabs-burger-chevron`} />
-            </button>
-            {menuOpen && (
-              <div className="game-tabs-dropdown">
-                <button className={`game-tabs-dropdown-item${activeGame === 'all' ? ' active' : ''}`} onClick={() => { selectGame('all'); setMenuOpen(false) }}>
-                  All Games
-                </button>
-                {games.map(g => (
-                  <button
-                    key={g.id}
-                    className={`game-tabs-dropdown-item${activeGame === g.slug ? ' active' : ''}`}
-                    onClick={() => { selectGame(g.slug); setMenuOpen(false) }}
-                  >
-                    {g.name}
-                    {isAdmin && activeGame === g.slug && (
-                      <span className="game-tab-delete-icon" onClick={e => openDeleteGame(e, g)}>
-                        <i className="fa-solid fa-trash" />
-                      </span>
-                    )}
-                  </button>
-                ))}
-                {isAdmin && (
-                  <button className="game-tabs-dropdown-item game-tabs-dropdown-add" onClick={() => { setError(''); setShowAddModal(true); setMenuOpen(false) }}>
-                    <i className="fa-solid fa-plus" /> Add Game
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Home tab */}
+          <Link
+            to="/"
+            className={`game-tabs-home${isHome && activeGame === 'all' ? ' active' : ''}`}
+          >
+            <i className="fa-solid fa-house" />
+            <span>Home</span>
+          </Link>
 
-          {/* Desktop scrollable tabs */}
-          <div className="game-tabs-desktop">
-            {showFadeLeft && (
-              <button className="game-tabs-arrow game-tabs-arrow-left" onClick={() => scrollTabs(-1)} aria-label="Scroll left">
-                <i className="fa-solid fa-chevron-left" />
-              </button>
-            )}
-            <div className="game-tabs-scrollable" ref={scrollRef} onScroll={checkOverflow}>
-              <div className="game-tabs">
-                <button className={`game-tab${activeGame === 'all' ? ' active' : ''}`} onClick={() => selectGame('all')}>
-                  All Games
+          <span className="game-tabs-divider" aria-hidden="true" />
+
+          {/* Games dropdown */}
+          <div className="game-tabs-selector" ref={selectorRef}>
+            <button
+              className={`game-tabs-trigger${dropdownOpen ? ' open' : ''}${activeGame !== 'all' ? ' has-selection' : ''}`}
+              onClick={() => setDropdownOpen(o => !o)}
+              aria-expanded={dropdownOpen}
+            >
+              <span className="game-tabs-label">{activeGameName}</span>
+              <i className={`fa-solid fa-chevron-down game-tabs-chevron${dropdownOpen ? ' rotated' : ''}`} />
+            </button>
+
+            <div className={`game-tabs-panel${dropdownOpen ? ' open' : ''}`}>
+              <div
+                className="game-tabs-scroll"
+                ref={scrollRef}
+                onScroll={checkScrollFade}
+              >
+                <button
+                  className={`game-tabs-item${activeGame === 'all' ? ' active' : ''}`}
+                  onClick={() => selectGame('all')}
+                >
+                  <span>All Games</span>
                 </button>
+
                 {games.map(g => (
                   <button
                     key={g.id}
-                    className={`game-tab${activeGame === g.slug ? ' active' : ''}`}
+                    className={`game-tabs-item${activeGame === g.slug ? ' active' : ''}`}
                     onClick={() => selectGame(g.slug)}
                   >
-                    {g.name}
-                    {isAdmin && activeGame === g.slug && (
-                      <span className="game-tab-delete-icon" onClick={e => openDeleteGame(e, g)} title={`Delete ${g.name}`}>
+                    <span>{g.name}</span>
+                    {isAdmin && (
+                      <span
+                        className="game-tab-delete-icon"
+                        onClick={e => openDeleteGame(e, g)}
+                        title={`Delete ${g.name}`}
+                      >
                         <i className="fa-solid fa-trash" />
                       </span>
                     )}
                   </button>
                 ))}
+
                 {isAdmin && (
-                  <button className="btn btn-ghost game-tab-add" onClick={() => { setError(''); setShowAddModal(true) }}>
-                    <i className="fa-solid fa-plus" /> Add Game
+                  <button
+                    className="game-tabs-item game-tabs-item-add"
+                    onClick={() => { setError(''); setShowAddModal(true); setDropdownOpen(false) }}
+                  >
+                    <i className="fa-solid fa-plus" />
+                    <span>Add Game</span>
                   </button>
                 )}
               </div>
+
+              {showScrollFade && <div className="game-tabs-scroll-fade" />}
             </div>
-            {showFadeRight && (
-              <button className="game-tabs-arrow game-tabs-arrow-right" onClick={() => scrollTabs(1)} aria-label="Scroll right">
-                <i className="fa-solid fa-chevron-right" />
-              </button>
-            )}
           </div>
 
         </div>
@@ -232,8 +227,12 @@ export default function GameTabs() {
             {deleteError && <p className="add-game-error">{deleteError}</p>}
             <div className="delete-game-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button type="submit" className="btn btn-primary" disabled={deleting}
-                style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={deleting}
+                style={{ background: 'var(--color-error)', borderColor: 'var(--color-error)' }}
+              >
                 {deleting ? 'Deleting…' : 'Delete Game'}
               </button>
             </div>
