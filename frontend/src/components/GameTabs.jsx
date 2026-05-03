@@ -150,13 +150,6 @@ export default function GameTabs() {
                 ref={scrollRef}
                 onScroll={checkScrollFade}
               >
-                <button
-                  className={`game-tabs-item${activeGame === 'all' ? ' active' : ''}`}
-                  onClick={() => selectGame('all')}
-                >
-                  <span>All Games</span>
-                </button>
-
                 {games.map(g => (
                   <button
                     key={g.id}
