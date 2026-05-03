@@ -111,10 +111,17 @@
 .game-tabs-scroll {
   max-height: 244px;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
   position: relative;
 }
-.game-tabs-scroll::-webkit-scrollbar { display: none; }
+.game-tabs-scroll::-webkit-scrollbar { width: 4px; }
+.game-tabs-scroll::-webkit-scrollbar-track { background: transparent; }
+.game-tabs-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+.game-tabs-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
 /* Bottom fade overlay */
 .game-tabs-scroll-fade {
