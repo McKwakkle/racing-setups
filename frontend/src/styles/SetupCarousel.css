@@ -1,0 +1,58 @@
+@import './variables.css';
+
+.carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+  /* bleed to full container width so fades reach the edges */
+  margin-left: calc(-1 * var(--space-md));
+  margin-right: calc(-1 * var(--space-md));
+  padding: var(--space-sm) 0 var(--space-lg);
+}
+
+.carousel-track {
+  display: flex;
+  /* margin-right per item instead of gap so -50% lands exactly at copy 2 */
+  animation: carousel-scroll var(--carousel-duration, 48s) linear infinite;
+  width: max-content;
+}
+.carousel-track:hover { animation-play-state: paused; }
+
+@keyframes carousel-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.carousel-item {
+  width: 280px;
+  flex-shrink: 0;
+  margin-right: var(--space-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel-item .setup-card {
+  flex: 1;
+}
+
+/* Gradient fades on left and right edges */
+.carousel-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 1;
+  pointer-events: none;
+}
+.carousel-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--color-bg), transparent);
+}
+.carousel-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--color-bg), transparent);
+}
+
+@media (max-width: 480px) {
+  .carousel-item { width: 240px; }
+  .carousel-fade { width: 40px; }
+}
