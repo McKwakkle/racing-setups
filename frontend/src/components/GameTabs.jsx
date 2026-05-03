@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams, useLocation } from 'react-router-dom'
+import { Link, useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/GameTabs.css'
@@ -8,6 +8,7 @@ function EventsDropdown() {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const isActive = pathname.startsWith('/events')
 
   useEffect(() => {
@@ -16,6 +17,8 @@ function EventsDropdown() {
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [open])
+
+  function goTo(path) { navigate(path); setOpen(false) }
 
   return (
     <div className="game-tabs-selector" ref={ref}>
@@ -30,20 +33,18 @@ function EventsDropdown() {
       </button>
       <div className={`game-tabs-panel${open ? ' open' : ''}`}>
         <div className="game-tabs-scroll">
-          <Link
-            to="/events/recurring"
+          <button
             className={`game-tabs-item${pathname === '/events/recurring' ? ' active' : ''}`}
-            onClick={() => setOpen(false)}
+            onClick={() => goTo('/events/recurring')}
           >
             <span><i className="fa-solid fa-rotate" style={{ marginRight: '8px', fontSize: '0.8rem' }} />Recurring Events</span>
-          </Link>
-          <Link
-            to="/events/oneoff"
+          </button>
+          <button
             className={`game-tabs-item${pathname === '/events/oneoff' ? ' active' : ''}`}
-            onClick={() => setOpen(false)}
+            onClick={() => goTo('/events/oneoff')}
           >
             <span><i className="fa-solid fa-calendar-check" style={{ marginRight: '8px', fontSize: '0.8rem' }} />One-off Events</span>
-          </Link>
+          </button>
         </div>
       </div>
     </div>

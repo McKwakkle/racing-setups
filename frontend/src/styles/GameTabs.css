@@ -135,8 +135,6 @@
 }
 
 /* Individual dropdown items */
-a.game-tabs-item { text-decoration: none; }
-
 .game-tabs-item {
   display: flex;
   align-items: center;
