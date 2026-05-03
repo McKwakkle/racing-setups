@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { supabase } from '../lib/supabase'
 import '../styles/Auth.css'
 
@@ -8,18 +9,29 @@ export default function Login() {
   const location = useLocation()
   const from = location.state?.from || '/'
 
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-  const [loading, setLoading]   = useState(false)
+  const [email, setEmail]           = useState('')
+  const [password, setPassword]     = useState('')
+  const [error, setError]           = useState('')
+  const [loading, setLoading]       = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const captchaRef = useRef(null)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken },
+    })
     setLoading(false)
-    if (error) { setError(error.message); return }
+    if (error) {
+      setError(error.message)
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken('')
+      return
+    }
     navigate(from, { replace: true })
   }
 
@@ -66,8 +78,15 @@ export default function Login() {
               required autoComplete="current-password"
             />
           </div>
+          <HCaptcha
+            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
+            onVerify={token => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken('')}
+            ref={captchaRef}
+            theme="dark"
+          />
           {error && <p className="auth-error">{error}</p>}
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || !captchaToken}>
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>

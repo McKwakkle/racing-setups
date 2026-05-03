@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Filter } from 'bad-words'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { supabase } from '../lib/supabase'
 import '../styles/Auth.css'
 
@@ -32,6 +33,8 @@ export default function Register() {
   const [success, setSuccess]             = useState(false)
   const [loading, setLoading]             = useState(false)
   const [showStrength, setShowStrength]   = useState(false)
+  const [captchaToken, setCaptchaToken]   = useState('')
+  const captchaRef = useRef(null)
 
   const checks = getStrength(password)
   const score  = strengthScore(checks)
@@ -63,11 +66,16 @@ export default function Register() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username: username.trim() } },
+      options: { data: { username: username.trim() }, captchaToken },
     })
     setLoading(false)
 
-    if (error) { setError(error.message); return }
+    if (error) {
+      setError(error.message)
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken('')
+      return
+    }
     setSuccess(true)
   }
 
@@ -170,8 +178,15 @@ export default function Register() {
               required autoComplete="new-password"
             />
           </div>
+          <HCaptcha
+            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
+            onVerify={token => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken('')}
+            ref={captchaRef}
+            theme="dark"
+          />
           {error && <p className="auth-error">{error}</p>}
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || !captchaToken}>
             {loading ? 'Creating account…' : 'Create Account'}
           </button>
         </form>

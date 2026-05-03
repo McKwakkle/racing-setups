@@ -98,6 +98,8 @@
 }
 
 
+.h-captcha { display: flex; justify-content: center; }
+
 .auth-submit {
   width: 100%;
   justify-content: center;
