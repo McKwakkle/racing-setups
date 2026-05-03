@@ -4,6 +4,21 @@ import { supabase } from '../lib/supabase'
 import { formatRRule } from '../lib/parseICS'
 import '../styles/EventCarousel.css'
 
+function googleCalendarUrl(event) {
+  const fmt = iso => new Date(iso).toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
+  const start = fmt(event.start_time)
+  const end   = event.end_time ? fmt(event.end_time) : start
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text:   event.title,
+    dates:  `${start}/${end}`,
+    details: event.description || '',
+    location: event.location || '',
+  })
+  if (event.rrule) params.set('recur', `RRULE:${event.rrule}`)
+  return `https://calendar.google.com/calendar/render?${params}`
+}
+
 function EventCarouselCard({ event }) {
   const schedule = event.is_recurring ? formatRRule(event.rrule) : null
   const date = event.is_recurring
@@ -32,6 +47,17 @@ function EventCarouselCard({ event }) {
           <span>{event.location}</span>
         </div>
       )}
+      <div className="ev-card-actions">
+        {event.discord_invite && (
+          <a href={event.discord_invite} target="_blank" rel="noopener noreferrer" className="ev-card-action-btn">
+            <i className="fa-brands fa-discord" /> Join
+          </a>
+        )}
+        <a href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer" className="ev-card-action-btn">
+          <i className="fa-brands fa-google" /> Calendar
+        </a>
+      </div>
+
       {event.profiles?.username && (
         <div className="ev-card-creator">
           <i className="fa-solid fa-circle-user" />

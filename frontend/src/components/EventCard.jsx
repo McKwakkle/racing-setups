@@ -10,6 +10,21 @@ function formatDate(iso) {
   })
 }
 
+function googleCalendarUrl(event) {
+  const fmt = iso => new Date(iso).toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
+  const start = fmt(event.start_time)
+  const end   = event.end_time ? fmt(event.end_time) : start
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text:   event.title,
+    dates:  `${start}/${end}`,
+    details: event.description || '',
+    location: event.location || '',
+  })
+  if (event.rrule) params.set('recur', `RRULE:${event.rrule}`)
+  return `https://calendar.google.com/calendar/render?${params}`
+}
+
 export default function EventCard({ event, onDelete }) {
   const { session, profile } = useAuth()
   const canDelete = session && (
@@ -66,6 +81,25 @@ export default function EventCard({ event, onDelete }) {
           <span>{event.location}</span>
         </div>
       )}
+
+      <div className="event-card-actions">
+        {event.discord_invite && (
+          <a
+            href={event.discord_invite}
+            target="_blank" rel="noopener noreferrer"
+            className="btn btn-secondary event-card-btn"
+          >
+            <i className="fa-brands fa-discord" /> Join Server
+          </a>
+        )}
+        <a
+          href={googleCalendarUrl(event)}
+          target="_blank" rel="noopener noreferrer"
+          className="btn btn-secondary event-card-btn"
+        >
+          <i className="fa-brands fa-google" /> Add to Calendar
+        </a>
+      </div>
 
       {event.profiles?.username && (
         <div className="event-card-footer">

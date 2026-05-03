@@ -86,14 +86,15 @@ serve(async (req) => {
     if (action === 'add_event') {
       const { event } = body
       const { error } = await supabase.from('events').insert({
-        title:        trunc(event.title, 200),
-        description:  trunc(event.description, 2000),
-        location:     trunc(event.location, 300),
-        start_time:   event.startTime,
-        end_time:     event.endTime ?? null,
-        is_recurring: event.isRecurring ?? false,
-        rrule:        event.rrule ?? null,
-        created_by:   user.id,
+        title:          trunc(event.title, 200),
+        description:    trunc(event.description, 2000),
+        location:       trunc(event.location, 300),
+        start_time:     event.startTime,
+        end_time:       event.endTime ?? null,
+        is_recurring:   event.isRecurring ?? false,
+        rrule:          event.rrule ?? null,
+        discord_invite: trunc(event.discordInvite, 500) ?? null,
+        created_by:     user.id,
       })
       if (error) throw error
       return json({ ok: true })

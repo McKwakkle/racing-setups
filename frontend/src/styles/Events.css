@@ -99,6 +99,20 @@
 }
 .events-preview-icon { color: var(--color-success); }
 
+.events-invite-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  flex-wrap: wrap;
+}
+.events-invite-icon { color: #5865f2; font-size: 1.1rem; flex-shrink: 0; }
+.events-invite-input {
+  flex: 1;
+  min-width: 200px;
+  font-size: 0.88rem;
+}
+
 .events-file-error,
 .events-file-success {
   width: 100%;

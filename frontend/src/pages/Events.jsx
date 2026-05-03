@@ -16,9 +16,10 @@ export default function Events() {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
 
-  const [parsed, setParsed]     = useState(null)
-  const [fileError, setFileError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [parsed, setParsed]           = useState(null)
+  const [discordInvite, setDiscordInvite] = useState('')
+  const [fileError, setFileError]     = useState('')
+  const [submitting, setSubmitting]   = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const fileRef = useRef(null)
 
@@ -37,6 +38,7 @@ export default function Events() {
   useEffect(() => {
     fetchEvents()
     setParsed(null)
+    setDiscordInvite('')
     setFileError('')
     setSubmitSuccess(false)
   }, [type])
@@ -72,7 +74,7 @@ export default function Events() {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-setup`, {
       method: 'POST',
       headers: await authHeaders(),
-      body: JSON.stringify({ action: 'add_event', event: parsed }),
+      body: JSON.stringify({ action: 'add_event', event: { ...parsed, discordInvite: discordInvite.trim() || null } }),
     })
     setSubmitting(false)
 
@@ -83,6 +85,7 @@ export default function Events() {
     }
 
     setParsed(null)
+    setDiscordInvite('')
     setSubmitSuccess(true)
     if (fileRef.current) fileRef.current.value = ''
     await fetchEvents()
@@ -159,16 +162,28 @@ export default function Events() {
               <i className="fa-solid fa-file-arrow-up" /> Choose ICS file
             </label>
             {parsed && (
-              <div className="events-preview">
-                <i className="fa-solid fa-circle-check events-preview-icon" />
-                <span>
-                  <strong>{parsed.title}</strong>
-                  {parsed.rrule && <> · {formatRRule(parsed.rrule)}</>}
-                </span>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? 'Uploading…' : 'Upload'}
-                </button>
-              </div>
+              <>
+                <div className="events-preview">
+                  <i className="fa-solid fa-circle-check events-preview-icon" />
+                  <span>
+                    <strong>{parsed.title}</strong>
+                    {parsed.rrule && <> · {formatRRule(parsed.rrule)}</>}
+                  </span>
+                </div>
+                <div className="events-invite-row">
+                  <i className="fa-brands fa-discord events-invite-icon" />
+                  <input
+                    type="url"
+                    className="events-invite-input"
+                    placeholder="Discord invite link (optional)"
+                    value={discordInvite}
+                    onChange={e => setDiscordInvite(e.target.value)}
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? 'Uploading…' : 'Upload'}
+                  </button>
+                </div>
+              </>
             )}
             {fileError    && <p className="events-file-error"><i className="fa-solid fa-triangle-exclamation" /> {fileError}</p>}
             {submitSuccess && <p className="events-file-success"><i className="fa-solid fa-circle-check" /> Event added successfully!</p>}

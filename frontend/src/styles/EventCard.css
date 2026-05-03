@@ -82,6 +82,23 @@
 }
 .event-card-location .fa-discord { color: #5865f2; font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
 
+.event-card-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-top: var(--space-xs);
+}
+
+.event-card-btn {
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  min-height: unset;
+  gap: 5px;
+  text-decoration: none;
+}
+.event-card-btn .fa-discord { color: #5865f2; }
+.event-card-btn:hover .fa-discord { color: inherit; }
+
 .event-card-footer {
   display: flex;
   align-items: center;

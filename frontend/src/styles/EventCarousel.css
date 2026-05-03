@@ -136,6 +136,30 @@
 }
 .ev-card-location .fa-discord { color: #5865f2; flex-shrink: 0; margin-top: 1px; }
 
+.ev-card-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-top: var(--space-xs);
+}
+
+.ev-card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  background: var(--color-bg-raised);
+  transition: border-color var(--transition), color var(--transition);
+}
+.ev-card-action-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.ev-card-action-btn .fa-discord { color: #5865f2; }
+.ev-card-action-btn:hover .fa-discord { color: inherit; }
+
 .ev-card-creator {
   display: flex;
   align-items: center;
