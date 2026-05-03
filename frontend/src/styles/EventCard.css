@@ -82,6 +82,69 @@
 }
 .event-card-location .fa-discord { color: #5865f2; font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
 
+.event-card-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.event-card-icon-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  opacity: 0.45;
+  transition: color var(--transition), opacity var(--transition);
+}
+.event-card-icon-btn:hover { opacity: 1; color: var(--color-primary); }
+.event-card-icon-btn.event-card-delete:hover { color: var(--color-error); }
+
+/* Edit modal */
+.event-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: var(--space-md);
+}
+
+.event-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.event-modal h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.event-modal textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.event-modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
 .event-card-actions {
   display: flex;
   gap: var(--space-xs);

@@ -221,6 +221,7 @@ export default function Events() {
               key={ev.id}
               event={ev}
               onDelete={session ? handleDelete : null}
+              onUpdate={session ? fetchEvents : null}
             />
           ))}
         </div>

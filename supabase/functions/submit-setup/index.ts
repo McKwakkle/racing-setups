@@ -100,6 +100,21 @@ serve(async (req) => {
       return json({ ok: true })
     }
 
+    // ── Update event (creator or admin) ───────────────────────────────────
+    if (action === 'update_event') {
+      const { event_id, updates } = body
+      const { data: ev } = await supabase.from('events').select('created_by').eq('id', event_id).single()
+      if (!ev) return json({ error: 'Not found' }, 404)
+      if (ev.created_by !== user.id && !await isAdmin()) return json({ error: 'Forbidden' }, 403)
+      const { error } = await supabase.from('events').update({
+        title:          trunc(updates.title, 200),
+        description:    trunc(updates.description, 2000),
+        discord_invite: trunc(updates.discord_invite, 500),
+      }).eq('id', event_id)
+      if (error) throw error
+      return json({ ok: true })
+    }
+
     // ── Delete event (creator or admin) ────────────────────────────────────
     if (action === 'delete_event') {
       const { data: ev } = await supabase.from('events').select('created_by').eq('id', body.event_id).single()
