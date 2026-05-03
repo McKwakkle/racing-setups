@@ -34,8 +34,12 @@ export default function Footer() {
           </button>
           <div className="footer-divider" />
           <div className="footer-links">
-            <a href="mailto:kellanmcn@gmail.com" className="footer-link" title="Email">
-              <i className="fa-solid fa-envelope" />
+            <a
+              href="https://mckwakkle.github.io/portfolio/"
+              target="_blank" rel="noopener noreferrer"
+              className="footer-link" title="Portfolio"
+            >
+              <i className="fa-solid fa-briefcase" />
             </a>
             <a
               href="https://www.linkedin.com/in/kellan-mc-naughton-906653120/"
