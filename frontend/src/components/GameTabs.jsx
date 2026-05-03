@@ -56,6 +56,7 @@ export default function GameTabs() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { profile } = useAuth()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const isAdmin = profile?.is_admin === true
 
   const [showAddModal, setShowAddModal]     = useState(false)
@@ -106,6 +107,12 @@ export default function GameTabs() {
   }, [dropdownOpen, games])
 
   function selectGame(slug) {
+    // If not on the home page, navigate there first
+    if (pathname !== '/') {
+      navigate(slug === 'all' ? '/' : `/?game=${slug}`)
+      setDropdownOpen(false)
+      return
+    }
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
       if (slug === 'all') next.delete('game')
