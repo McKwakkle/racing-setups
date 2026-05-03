@@ -5,9 +5,9 @@ export default function HowTo() {
   return (
     <div className="container">
       <div className="howto-page">
-        <h1><i className="fa-solid fa-circle-question" style={{ color: 'var(--color-primary)', marginRight: '0.5rem' }} />How to Use Racing Setups</h1>
+        <h1><i className="fa-solid fa-circle-question" style={{ color: 'var(--color-primary)', marginRight: '0.5rem' }} />How to Use Obelix Motorsport</h1>
         <p className="howto-intro">
-          A quick guide to browsing, creating, and managing your car setups.
+          A quick guide to browsing, creating, and managing your car setups — and keeping up with upcoming race events.
         </p>
 
         <div className="howto-toc">
@@ -21,6 +21,7 @@ export default function HowTo() {
             <li><a href="#csv">CSV &amp; AI import</a></li>
             <li><a href="#rating">Rating &amp; bookmarking</a></li>
             <li><a href="#dashboard">Your dashboard</a></li>
+            <li><a href="#events">Events</a></li>
           </ol>
         </div>
 
@@ -40,7 +41,7 @@ export default function HowTo() {
               </tr>
             </thead>
             <tbody>
-              <tr><td>Browse game tabs</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Browse game tabs &amp; events</td><td>✅</td><td>✅</td></tr>
               <tr><td>See setup title, car, track, lap time</td><td>✅</td><td>✅</td></tr>
               <tr><td>View full setup (suspension, tires, etc.)</td><td>❌</td><td>✅</td></tr>
               <tr><td>Upvote setups</td><td>❌</td><td>✅</td></tr>
@@ -48,6 +49,7 @@ export default function HowTo() {
               <tr><td>Create &amp; manage setups</td><td>❌</td><td>✅</td></tr>
               <tr><td>Private setup drafts</td><td>❌</td><td>✅</td></tr>
               <tr><td>Follow favourite games</td><td>❌</td><td>✅</td></tr>
+              <tr><td>Upload events (ICS)</td><td>❌</td><td>✅</td></tr>
             </tbody>
           </table></div>
 
@@ -288,6 +290,71 @@ export default function HowTo() {
             <Link to="/register" className="btn btn-primary">
               <i className="fa-solid fa-user-plus" /> Create an Account
             </Link>
+          </div>
+        </div>
+
+        {/* Events */}
+        <div className="howto-section" id="events">
+          <div className="howto-section-header">
+            <i className="fa-solid fa-calendar-days" />
+            <h2>Events</h2>
+          </div>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-md)', lineHeight: 1.7 }}>
+            The Events section is where upcoming race nights and one-off sessions get posted for the community to see.
+            Click the <strong>Events</strong> dropdown in the tab bar and choose <strong>Recurring Events</strong> or <strong>One-off Events</strong>.
+          </p>
+
+          <div className="howto-table-wrap"><table className="howto-table">
+            <thead>
+              <tr><th>Type</th><th>What it is</th><th>Auto-deleted?</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Recurring</strong></td>
+                <td>Race nights that repeat on a schedule — e.g. every Monday at 9pm. Shown with a purple badge.</td>
+                <td>No — stays until manually removed</td>
+              </tr>
+              <tr>
+                <td><strong>One-off</strong></td>
+                <td>A single upcoming event with a specific date and time. Shown with a blue badge.</td>
+                <td>Yes — automatically removed the morning after the event</td>
+              </tr>
+            </tbody>
+          </table></div>
+
+          <div className="howto-step">
+            <div className="howto-step-num">1</div>
+            <div className="howto-step-content">
+              <strong>Get the ICS file from Discord</strong>
+              <p>Open the Discord server, find the event in the <strong>Events</strong> section, click it, then click <strong>Interested</strong> or the download/export option to get an <code>.ics</code> file. This is a standard calendar file that contains all the event details.</p>
+            </div>
+          </div>
+          <div className="howto-step">
+            <div className="howto-step-num">2</div>
+            <div className="howto-step-content">
+              <strong>Go to the right events page</strong>
+              <p>If the event repeats on a schedule, go to <strong>Events → Recurring Events</strong>. If it's a single date, go to <strong>Events → One-off Events</strong>. Uploading to the wrong page will be rejected automatically.</p>
+            </div>
+          </div>
+          <div className="howto-step">
+            <div className="howto-step-num">3</div>
+            <div className="howto-step-content">
+              <strong>Upload the ICS file</strong>
+              <p>Click <strong>Choose ICS file</strong>, select your file, and a preview will appear showing the event title and schedule. Click <strong>Upload</strong> to confirm.</p>
+            </div>
+          </div>
+
+          <div className="howto-callout">
+            <i className="fa-solid fa-rotate" />
+            <span><strong>Recurring events</strong> must repeat at least twice — a one-time "recurring" event will be rejected. If the Discord event has no repeat schedule, upload it as a One-off instead.</span>
+          </div>
+          <div className="howto-callout">
+            <i className="fa-solid fa-trash" />
+            <span><strong>One-off events</strong> are automatically deleted at 2am UTC the morning after the event date. You don't need to clean them up manually. Recurring events stay until you or an admin removes them from the events page.</span>
+          </div>
+          <div className="howto-callout">
+            <i className="fa-solid fa-circle-info" />
+            <span>Anyone can view events without an account. You need to be signed in to upload one.</span>
           </div>
         </div>
 
