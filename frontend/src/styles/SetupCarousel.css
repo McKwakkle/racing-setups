@@ -52,6 +52,9 @@
   background: linear-gradient(to left, var(--color-bg), transparent);
 }
 
+/* Home loading placeholder — prevents CLS when carousel replaces the spinner */
+.carousel-home-skeleton { min-height: 280px; }
+
 @media (max-width: 480px) {
   .carousel-item { width: 240px; }
   .carousel-fade { width: 40px; }

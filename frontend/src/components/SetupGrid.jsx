@@ -80,6 +80,7 @@ export default function SetupGrid() {
   }, [gameSlug, carSearch, gameSearch, trackSearch, authorSearch, isHomeView])
 
   if (loading) {
+    if (isHomeView) return <div className="carousel-home-skeleton" />
     return (
       <div className="empty-state">
         <i className="fa-solid fa-spinner fa-spin" />

@@ -175,6 +175,9 @@
 }
 .ev-card-creator i { color: var(--color-primary); font-size: 0.85rem; }
 
+/* Loading placeholder — reserves space to prevent CLS */
+.ev-carousel-skeleton { min-height: 260px; }
+
 @media (max-width: 480px) {
   .ev-carousel-item { width: 260px; }
   .ev-carousel-fade { width: 40px; }

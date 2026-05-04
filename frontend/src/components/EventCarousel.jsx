@@ -81,7 +81,8 @@ export default function EventCarousel({ isRecurring }) {
       .then(({ data }) => { setEvents(data || []); setLoaded(true) })
   }, [isRecurring])
 
-  if (!loaded || events.length === 0) return null
+  if (!loaded) return <div className="ev-carousel-section ev-carousel-skeleton" aria-hidden="true" />
+  if (events.length === 0) return null
 
   const duration = `${Math.max(events.length * 4, 20)}s`
   const title = isRecurring ? 'Recurring Race Nights' : 'Upcoming One-off Events'
