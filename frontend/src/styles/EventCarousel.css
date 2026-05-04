@@ -45,8 +45,8 @@
 .ev-carousel-track:hover { animation-play-state: paused; }
 
 @keyframes ev-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
 }
 
 .ev-carousel-item {
@@ -80,6 +80,12 @@
   flex-direction: column;
   gap: var(--space-xs);
   height: 100%;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.ev-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 20px rgba(168,85,247,0.15);
 }
 .ev-card-recurring { border-left-color: var(--color-primary); }
 .ev-card-oneoff    { border-left-color: #3b82f6; }

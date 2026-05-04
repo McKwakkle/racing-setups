@@ -83,7 +83,7 @@ export default function EventCarousel({ isRecurring }) {
 
   if (!loaded || events.length === 0) return null
 
-  const duration = `${Math.max(events.length * 5, 20)}s`
+  const duration = `${Math.max(events.length * 4, 20)}s`
   const title = isRecurring ? 'Recurring Race Nights' : 'Upcoming One-off Events'
   const link  = isRecurring ? '/events/recurring' : '/events/oneoff'
 
