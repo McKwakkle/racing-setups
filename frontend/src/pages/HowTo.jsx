@@ -340,7 +340,7 @@ export default function HowTo() {
             <div className="howto-step-num">3</div>
             <div className="howto-step-content">
               <strong>Upload the ICS file</strong>
-              <p>Click <strong>Choose ICS file</strong>, select your file, and a preview will appear showing the event title and schedule. Click <strong>Upload</strong> to confirm.</p>
+              <p>Click <strong>Choose ICS file</strong>, select your file, and a preview will appear showing the event title and schedule. You can optionally paste a <strong>Discord invite link</strong> so people can join the server directly from the event card. Click <strong>Upload</strong> to confirm.</p>
             </div>
           </div>
 
